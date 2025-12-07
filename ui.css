@@ -1,10 +1,15 @@
-/* NovaBot v6.9 – Unified Blue Glass (Shadow DOM Version) */
-
-:root {
+:host {
   --nova-blue: #1b577c;
   --nova-orange: #fe930e;
   --nova-bg-dark: #0b1824;
-  --nova-font: "Tajawal", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --nova-font: "Tajawal", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+}
+
+.nova-root,
+.nova-root * {
+  box-sizing: border-box;
+  font-family: var(--nova-font);
 }
 
 /* ============ الزر العائم ============ */
@@ -23,13 +28,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.45),
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45),
     0 0 0 2px rgba(255, 255, 255, 0.08);
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    filter 0.25s ease,
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease,
     opacity 0.25s ease;
 }
 .nova-fab-inner {
@@ -49,17 +50,26 @@
 }
 .nova-fab:hover {
   transform: translateY(-3px) scale(1.03);
-  box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.6),
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6),
     0 0 0 2px rgba(254, 147, 14, 0.4);
   filter: drop-shadow(0 0 12px rgba(254, 147, 14, 0.6));
 }
 
+/* اهتزاز خفيف */
 @keyframes novaPulse {
-  0%, 100% { transform: translateY(0) scale(1); }
-  25% { transform: translateY(-3px) scale(1.02); }
-  50% { transform: translateY(1px) scale(0.99); }
-  75% { transform: translateY(-2px) scale(1.01); }
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-3px) scale(1.02);
+  }
+  50% {
+    transform: translateY(1px) scale(0.99);
+  }
+  75% {
+    transform: translateY(-2px) scale(1.01);
+  }
 }
 .nova-fab.nova-idle {
   animation: novaPulse 0.9s ease-in-out 1;
@@ -70,11 +80,35 @@
   transform: translateY(10px) scale(0.9);
 }
 
+/* موضع ذكي حسب حجم الشاشة – دائماً في جهة اليد اليمنى */
+@media (max-width: 640px) {
+  .nova-fab {
+    bottom: 20px;
+    right: 20px;
+  }
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  .nova-fab {
+    bottom: 30px;
+    right: 26px;
+  }
+}
+@media (min-width: 1025px) {
+  .nova-fab {
+    bottom: 40px;
+    right: 32px;
+  }
+}
+
 /* ============ الخلفية خلف نافذة الدردشة ============ */
 .nova-chat-backdrop {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at bottom right, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.75));
+  background: radial-gradient(
+    circle at bottom right,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0.75)
+  );
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
@@ -84,13 +118,12 @@
   transition: opacity 0.35s ease;
 }
 
-/* حالة الفتح */
 .nova-chat-backdrop.nova-open {
   opacity: 1;
   pointer-events: auto;
 }
 
-/* ============ نافذة الدردشة – ثيم موحّد داكن ============ */
+/* ============ نافذة الدردشة – ثيم ليلي افتراضي ============ */
 .nova-chat-shell {
   position: relative;
   margin: 16px 16px 120px 16px;
@@ -99,8 +132,7 @@
   border-radius: 18px;
   background: radial-gradient(circle at 0% 0%, #132033, #050b14 60%);
   border: 1px solid rgba(192, 209, 224, 0.22);
-  box-shadow:
-    0 22px 60px rgba(0, 0, 0, 0.6),
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.6),
     0 0 0 1px rgba(255, 255, 255, 0.02);
   display: flex;
   flex-direction: column;
@@ -108,11 +140,7 @@
   transform-origin: bottom right;
   transform: translateY(24px) scale(0.9);
   opacity: 0;
-  font-family: var(--nova-font);
-  direction: rtl;
-  box-sizing: border-box;
-  transition:
-    transform 0.35s cubic-bezier(0.23, 1, 0.32, 1.1),
+  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1.1),
     opacity 0.35s ease;
 }
 
@@ -121,7 +149,7 @@
   transform: translateY(0) scale(1);
 }
 
-/* ============ الهيدر – Glass Card ============ */
+/* ============ الهيدر ============ */
 .nova-chat-header {
   display: flex;
   align-items: center;
@@ -131,6 +159,7 @@
   border-radius: 16px;
   background: linear-gradient(135deg, #0c1724, #152a40);
   color: #ffffff;
+  direction: rtl;
   font-family: var(--nova-font);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
   border-bottom: none;
@@ -217,17 +246,11 @@
   flex: 1;
   padding: 6px 10px 80px 10px;
   overflow-y: auto;
+  direction: rtl;
   font-family: var(--nova-font);
-  background: linear-gradient(
-    135deg,
-    #0b1824 0%,
-    #101f33 40%,
-    #050b14 100%
-  );
-  color: #f5f7ff;
+  background: linear-gradient(135deg, #0b1824 0%, #101f33 40%, #050b14 100%);
 }
 
-/* Scrollbar */
 .nova-chat-body::-webkit-scrollbar {
   width: 6px;
 }
@@ -258,13 +281,12 @@
   line-height: 1.7;
   word-wrap: break-word;
   word-break: break-word;
-  font-family: var(--nova-font);
 }
 
 /* فقاعة المستخدم */
 .nova-bubble-user {
   background: linear-gradient(135deg, #1b577c, #13405b);
-  color: #ffffff;
+  color: #fdfdff;
   border-bottom-right-radius: 4px;
   box-shadow: 0 4px 12px rgba(10, 26, 44, 0.6);
 }
@@ -311,7 +333,6 @@
 /* محتوى فقاعة البوت */
 .nova-bubble-content {
   font-size: 13px;
-  color: inherit;
 }
 .nova-bubble-content a {
   color: #e9f4ff;
@@ -341,12 +362,26 @@
   background: #fe930e;
   animation: novaTyping 1.2s infinite ease-in-out;
 }
-.nova-dot-typing:nth-child(1) { animation-delay: 0s; }
-.nova-dot-typing:nth-child(2) { animation-delay: 0.2s; }
-.nova-dot-typing:nth-child(3) { animation-delay: 0.4s; }
+.nova-dot-typing:nth-child(1) {
+  animation-delay: 0s;
+}
+.nova-dot-typing:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.nova-dot-typing:nth-child(3) {
+  animation-delay: 0.4s;
+}
 @keyframes novaTyping {
-  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
-  40% { opacity: 1; transform: translateY(-2px); }
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
 }
 
 /* ============ الفوتر الزجاجي ============ */
@@ -366,12 +401,12 @@
   align-items: center;
   gap: 6px;
   flex-direction: row-reverse;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.35) 100%
+    rgba(0, 0, 0, 0.28) 100%
   );
   z-index: 3;
 }
@@ -380,10 +415,10 @@
   flex: 1;
 }
 
-/* حقل الكتابة – إصلاح القص + box-sizing */
+/* حقل الكتابة – سطر واحد → 4 سطور */
 .nova-input {
   width: 100%;
-  padding: 7px 10px;
+  padding: 7px 10px 7px 52px;
   border-radius: 14px;
   border: 1px solid rgba(192, 209, 224, 0.5);
   background: rgba(7, 15, 24, 0.98);
@@ -395,10 +430,7 @@
   min-height: 32px;
   max-height: 96px;
   line-height: 1.6;
-  box-sizing: border-box;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
+  transition: border-color 0.2s ease, box-shadow 0.2s ease,
     background 0.2s ease;
 }
 .nova-input::placeholder {
@@ -417,11 +449,11 @@
   color: rgba(180, 199, 220, 0.7);
 }
 
-/* زر الإرسال */
+/* زر الإرسال – بيضاوي رأسي */
 .nova-send-btn {
   border-radius: 999px;
   border: none;
-  padding: 9px 11px;
+  padding: 10px 14px;
   background: linear-gradient(135deg, #fe930e, #ffb24c);
   color: #10171f;
   font-size: 15px;
@@ -432,13 +464,10 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 6px 18px rgba(254, 147, 14, 0.45);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    filter 0.15s ease,
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease,
     opacity 0.15s ease;
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
 }
 .nova-send-btn span {
   font-size: 15px;
@@ -483,8 +512,7 @@
   background: rgba(10, 22, 36, 0.96);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
   font-size: 13px;
-  font-family: var(--nova-font);
-  color: #f5f7ff;
+  direction: rtl;
 }
 .nova-card-header {
   font-weight: 700;
@@ -493,7 +521,7 @@
 }
 .nova-card-text {
   font-size: 12px;
-  color: rgba(222, 234, 248, 0.9);
+  color: rgba(222, 234, 248, 0.92);
   margin-bottom: 8px;
 }
 .nova-card-input {
@@ -506,7 +534,6 @@
   font-family: var(--nova-font);
   font-size: 12px;
   margin-bottom: 8px;
-  box-sizing: border-box;
 }
 .nova-card-input::placeholder {
   color: rgba(196, 210, 230, 0.82);
@@ -549,7 +576,17 @@
   height: 6px;
 }
 
-/* ============ موبايل: تحجيم الشِل ============ */
+/* توحيد النصوص لتكون فاتحة في الوضع الليلي */
+.nova-chat-body,
+.nova-chat-body *,
+.nova-card,
+.nova-card *,
+.nova-input,
+.nova-system-msg {
+  color: #f5f7ff;
+}
+
+/* ============ موبايل: تعديلات بسيطة ============ */
 @media (max-width: 768px) {
   .nova-chat-backdrop {
     align-items: flex-end;
@@ -578,75 +615,114 @@
   }
 }
 
-/* ============ وضع نهاري – موبايل/تابلت فقط ============ */
+/* ============ وضع نهاري – فقط موبايل + تابلت مع light mode ============ */
 @media (max-width: 1024px) and (prefers-color-scheme: light) {
   .nova-chat-shell {
     background: #f5f7fc;
     border: 1px solid rgba(27, 87, 124, 0.18);
-    box-shadow:
-      0 18px 40px rgba(0, 0, 0, 0.10),
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.1),
       0 0 0 1px rgba(255, 255, 255, 0.8);
   }
 
   .nova-chat-header {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.82);
     color: #1b577c;
-    border-bottom: 1px solid rgba(27, 87, 124, 0.12);
-    box-shadow: 0 4px 12px rgba(27, 87, 124, 0.12);
+    border-bottom: 1px solid rgba(27, 87, 124, 0.16);
+    box-shadow: 0 6px 18px rgba(27, 87, 124, 0.18);
   }
-
   .nova-header-subtitle {
-    color: rgba(8, 24, 48, 0.75);
+    color: #23405a;
   }
-
-  .nova-bot-name {
+  .nova-header-chip {
     color: #1b577c;
+    border-color: rgba(27, 87, 124, 0.35);
+    font-weight: 600;
   }
 
   .nova-chat-body {
     background: linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.96),
+      rgba(255, 255, 255, 0.95),
       rgba(245, 247, 252, 0.98)
     );
     color: #0b1a2a;
   }
 
   .nova-bubble-bot {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(27, 87, 124, 0.22);
-    color: #123047;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(27, 87, 124, 0.16);
+    color: #122235;
+    box-shadow: 0 3px 10px rgba(15, 43, 73, 0.16);
+  }
+
+  .nova-bubble-content a {
+    color: #1b577c;
+  }
+  .nova-bubble-content a:hover {
+    color: #fe930e;
   }
 
   .nova-typing {
-    color: #243b53;
+    color: #4b6075;
+  }
+  .nova-bot-name {
+    color: #122235;
   }
 
   .nova-card {
-    background: rgba(255, 255, 255, 0.97);
-    border-color: rgba(27, 87, 124, 0.18);
-    color: #10263d;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(27, 87, 124, 0.16);
+    box-shadow: 0 3px 10px rgba(15, 43, 73, 0.16);
+  }
+  .nova-card-header {
+    color: #122235;
+  }
+  .nova-card-text,
+  .nova-card,
+  .nova-card * {
+    color: #22354a;
+  }
+
+  .nova-card-input {
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(27, 87, 124, 0.35);
+    color: #122235;
+  }
+  .nova-card-input::placeholder {
+    color: rgba(70, 96, 126, 0.9);
+  }
+
+  .nova-footer-row {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background: linear-gradient(
+      to bottom,
+      rgba(245, 247, 252, 0.0) 0%,
+      rgba(245, 247, 252, 0.85) 100%
+    );
   }
 
   .nova-input {
     background: rgba(255, 255, 255, 0.98);
     border: 1px solid rgba(27, 87, 124, 0.35);
-    color: #0b1a2a;
+    color: #122235;
   }
-
+  .nova-input::placeholder {
+    color: rgba(70, 96, 126, 0.9);
+  }
   .nova-input:focus {
     background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(254, 147, 14, 0.9);
+    box-shadow: 0 0 0 1px rgba(254, 147, 14, 0.4);
   }
 
-  .nova-footer-row {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    background: linear-gradient(
-      to bottom,
-      rgba(245, 247, 252, 0.2) 0%,
-      rgba(245, 247, 252, 0.96) 90%
-    );
+  /* فقاعة المستخدم في النهاري: تظل داكنة ونصها أبيض */
+  .nova-bubble-user {
+    color: #ffffff;
+  }
+
+  /* لون النص داخل المؤشر */
+  .nova-typing span {
+    color: #4b6075;
   }
 }
