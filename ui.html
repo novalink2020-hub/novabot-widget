@@ -1,3 +1,61 @@
-<div id="nova-test-box">
-  <p style="margin:0; padding:10px;">NovaBot Test Widget</p>
+<!-- NovaBot v6.9 – Shadow DOM UI Structure -->
+<div class="nova-root" dir="rtl">
+  <button class="nova-fab" id="novaFabBtn" aria-label="Open NovaBot chat">
+    <div class="nova-fab-inner">
+      <img
+        src="https://assets.zyrosite.com/YD0w46zZ5ZIrwlP8/uo3osso1o--uuuoss-ossuodeguu-1-fUS15tGQu2AgbmOA.gif"
+        alt="NovaBot Icon"
+      />
+    </div>
+  </button>
+
+  <div class="nova-chat-backdrop" id="novaBackdrop" aria-hidden="true">
+    <div class="nova-chat-shell" dir="rtl">
+      <header class="nova-chat-header">
+        <div class="nova-header-left">
+          <div class="nova-header-avatar">
+            <img
+              src="https://assets.zyrosite.com/YD0w46zZ5ZIrwlP8/novabot-2-f081v1SXHunuZjwP.png"
+              alt="NovaBot Avatar"
+            />
+          </div>
+          <div class="nova-header-text">
+            <div class="nova-header-title">NOVA BOT</div>
+            <div class="nova-header-subtitle">
+              <span class="nova-dot"></span>
+              <span>مساعدك الذكي لتطوير الأعمال</span>
+            </div>
+          </div>
+        </div>
+        <div class="nova-header-actions">
+          <div class="nova-header-chip">NovaBot v6.9</div>
+          <button
+            class="nova-header-close"
+            id="novaCloseBtn"
+            aria-label="Close chat"
+          >
+            ✕
+          </button>
+        </div>
+      </header>
+
+      <main class="nova-chat-body" id="novaChatBody"></main>
+
+      <footer class="nova-chat-footer">
+        <div class="nova-footer-row">
+          <div class="nova-input-wrapper">
+            <textarea
+              id="novaInput"
+              class="nova-input"
+              placeholder="اسأل NovaBot"
+            ></textarea>
+            <div class="nova-input-hint"></div>
+          </div>
+          <button class="nova-send-btn" id="novaSendBtn" aria-label="إرسال">
+            <span>➤</span>
+          </button>
+        </div>
+      </footer>
+    </div>
+  </div>
 </div>
