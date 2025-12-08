@@ -1,6 +1,5 @@
 /* ==========================================================
-   NovaBot v6.9.x – UI Styles (Shadow DOM)
-   متوافق مع Tajawal + وضع ليلي افتراضي + وضع نهاري للموبايل/تابلت
+   NovaBot v6.9.7 – UI Styles (Shadow DOM – SaaS Ultra)
    ========================================================== */
 
 /* تحميل خط Tajawal داخل الـ Shadow DOM */
@@ -30,8 +29,8 @@
   bottom: 20px;
   right: 20px;
   z-index: 9999;
-  width: clamp(72px, 13vw, 96px);
-  height: clamp(72px, 13vw, 96px);
+  width: clamp(74px, 13vw, 98px);
+  height: clamp(74px, 13vw, 98px);
   border-radius: 999px;
   border: none;
   padding: 0;
@@ -112,7 +111,7 @@
   margin: 16px 16px 110px 16px;
   width: min(420px, 100vw - 32px);
   height: min(560px, 80vh);
-  border-radius: 18px;
+  border-radius: 20px;
   background: radial-gradient(circle at 0% 0%, #132033, #050b14 60%);
   border: 1px solid rgba(192, 209, 224, 0.22);
   box-shadow:
@@ -138,13 +137,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
-  margin: 8px;
-  border-radius: 16px;
+  padding: 8px 12px;
+  margin: 8px 8px 6px 8px;
+  border-radius: 18px;
   background: linear-gradient(135deg, #0c1724, #152a40);
   color: #ffffff;
   direction: rtl;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.48);
   position: relative;
   z-index: 4;
 }
@@ -154,15 +153,15 @@
   gap: 8px;
 }
 .nova-header-avatar {
-  width: 36px;
-  height: 52px;
+  width: 38px;
+  height: 54px;
   border-radius: 999px;
   overflow: hidden;
   background: rgba(7, 15, 24, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.6px solid rgba(254, 147, 14, 0.8);
+  border: 1.8px solid rgba(254, 147, 14, 0.85);
   padding: 2px;
 }
 .nova-header-avatar img {
@@ -176,12 +175,12 @@
   gap: 2px;
 }
 .nova-header-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 .nova-header-subtitle {
-  font-size: 11px;
+  font-size: 11.5px;
   color: rgba(233, 243, 255, 0.86);
   display: flex;
   align-items: center;
@@ -203,8 +202,8 @@
 .nova-header-chip {
   border-radius: 999px;
   border: 1px solid rgba(233, 243, 255, 0.25);
-  padding: 3px 9px;
-  font-size: 10.5px;
+  padding: 3px 10px;
+  font-size: 11px;
   color: rgba(233, 243, 255, 0.9);
   white-space: nowrap;
 }
@@ -212,7 +211,7 @@
   background: transparent;
   border: none;
   color: rgba(249, 251, 255, 0.9);
-  font-size: 19px;
+  font-size: 20px;
   cursor: pointer;
   padding: 4px;
   border-radius: 999px;
@@ -227,7 +226,7 @@
 /* ============ جسم المحادثة ============ */
 .nova-chat-body {
   flex: 1;
-  padding: 8px 12px 82px 12px;
+  padding: 10px 13px 90px 13px;
   overflow-y: auto;
   direction: rtl;
   background: linear-gradient(
@@ -237,7 +236,7 @@
     #050b14 100%
   );
   color: var(--nova-text-light);
-  font-size: 14px;
+  font-size: 15px;
 }
 .nova-chat-body::-webkit-scrollbar {
   width: 6px;
@@ -253,7 +252,7 @@
 /* ============ فقاعات الرسائل ============ */
 .nova-msg-row {
   display: flex;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .nova-msg-row.nova-user {
   justify-content: flex-end;
@@ -262,14 +261,14 @@
   justify-content: flex-start;
 }
 .nova-msg-row + .nova-msg-row {
-  margin-top: 4px;
+  margin-top: 6px;
 }
 .nova-bubble {
-  max-width: 78%;
-  padding: 10px 12px;
-  border-radius: 14px;
-  font-size: 14px;
-  line-height: 1.7;
+  max-width: 80%;
+  padding: 11px 13px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.8;
   word-wrap: break-word;
   word-break: break-word;
 }
@@ -296,12 +295,12 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 4px;
-  font-size: 11.5px;
+  font-size: 12px;
   color: rgba(227, 237, 249, 0.95);
 }
 .nova-bot-header-icon {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 999px;
   overflow: hidden;
   background: rgba(7, 15, 24, 0.95);
@@ -317,10 +316,10 @@
 .nova-bot-name {
   font-weight: 700;
   letter-spacing: 0.01em;
-  font-size: 12px;
+  font-size: 13px;
 }
 .nova-bubble-content {
-  font-size: 14px;
+  font-size: 15px;
 }
 .nova-bubble-content a {
   color: #ffdd9a;
@@ -332,7 +331,7 @@
 
 /* ============ مؤشر الكتابة ============ */
 .nova-typing {
-  font-size: 12px;
+  font-size: 13px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -373,11 +372,12 @@
   align-items: flex-end;
   gap: 8px;
   flex-direction: row-reverse;
+  /* شفافية متدرجة بدون blur – أسلوب ChatGPT */
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.00) 0%,
-    rgba(0, 0, 0, 0.25) 55%,
-    rgba(0, 0, 0, 0.45) 100%
+    rgba(0, 0, 0, 0.22) 55%,
+    rgba(0, 0, 0, 0.38) 100%
   );
   z-index: 3;
 }
@@ -394,10 +394,10 @@
   border: 1px solid rgba(192, 209, 224, 0.55);
   background: rgba(7, 15, 24, 0.98);
   color: #f5f7ff;
-  font-size: 14px;
+  font-size: 15px;
   outline: none;
   resize: none;
-  min-height: 36px;
+  min-height: 38px;
   max-height: 96px;
   line-height: 1.7;
   overflow-y: auto;
@@ -418,7 +418,7 @@
   position: absolute;
   left: 14px;
   bottom: 3px;
-  font-size: 10.5px;
+  font-size: 11px;
   color: rgba(180, 199, 220, 0.75);
 }
 
@@ -429,7 +429,7 @@
   padding: 9px 13px;
   background: linear-gradient(135deg, #fe930e, #ffb24c);
   color: #10171f;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
@@ -441,8 +441,8 @@
     box-shadow 0.15s ease,
     filter 0.15s ease,
     opacity 0.15s ease;
-  min-width: 42px;
-  min-height: 42px;
+  min-width: 44px;
+  min-height: 44px;
 }
 .nova-send-btn:hover {
   transform: translateY(-1px);
@@ -462,7 +462,7 @@
 /* رسائل نظامية وروابط */
 .nova-system-msg {
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   color: rgba(196, 210, 230, 0.9);
   margin: 6px 0 2px;
 }
@@ -477,13 +477,13 @@
 
 /* ============ البطاقات ============ */
 .nova-card {
-  margin-top: 8px;
-  padding: 10px 12px;
-  border-radius: 12px;
+  margin-top: 10px;
+  padding: 11px 13px;
+  border-radius: 13px;
   border: 1px solid rgba(192, 209, 224, 0.35);
   background: rgba(10, 22, 36, 0.97);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
-  font-size: 14px;
+  font-size: 15px;
   direction: rtl;
   color: var(--nova-text-light);
   animation: novaCardIn 0.45s cubic-bezier(.22,.7,.3,1) forwards;
@@ -492,10 +492,10 @@
   font-weight: 700;
   margin-bottom: 6px;
   color: #f5f7ff;
-  font-size: 14.5px;
+  font-size: 15.5px;
 }
 .nova-card-text {
-  font-size: 13.5px;
+  font-size: 14.5px;
   color: rgba(222, 234, 248, 0.95);
   margin-bottom: 8px;
 }
@@ -506,7 +506,7 @@
   border: 1px solid rgba(192, 209, 224, 0.7);
   background: rgba(5, 13, 22, 0.95);
   color: #e8f0ff;
-  font-size: 13px;
+  font-size: 14px;
   margin-bottom: 8px;
 }
 .nova-card-input::placeholder {
@@ -522,7 +522,7 @@
   border-radius: 999px;
   border: none;
   padding: 6px 13px;
-  font-size: 12.5px;
+  font-size: 13px;
   cursor: pointer;
   font-weight: 600;
   display: inline-flex;
@@ -542,7 +542,7 @@
 }
 .nova-card-note {
   margin-top: 6px;
-  font-size: 11.5px;
+  font-size: 12px;
   color: rgba(196, 210, 230, 0.9);
 }
 .nova-card-separator {
@@ -567,14 +567,14 @@
     height: 55dvh;
   }
   .nova-header-avatar {
-    width: 32px;
-    height: 48px;
+    width: 34px;
+    height: 50px;
   }
   .nova-header-title {
-    font-size: 13.5px;
+    font-size: 14.5px;
   }
   .nova-header-subtitle {
-    font-size: 11px;
+    font-size: 11.5px;
   }
 }
 
@@ -591,13 +591,17 @@
   .nova-chat-header {
     background: linear-gradient(135deg, #ffffff, #e7f0fb);
     color: var(--nova-blue-deep);
-    box-shadow: 0 6px 14px rgba(27, 87, 124, 0.18);
+    box-shadow: 0 8px 18px rgba(27, 87, 124, 0.18);
   }
 
   .nova-header-title,
   .nova-header-subtitle,
   .nova-bot-name {
     color: var(--nova-blue-deep);
+  }
+
+  .nova-header-avatar {
+    background: #1b577c;
   }
 
   .nova-chat-body {
