@@ -690,3 +690,69 @@
     color: var(--nova-blue-deep);
   }
 }
+
+/* =======================================
+   المرحلة الأولى – تحسينات الوضع النهاري
+   ======================================= */
+
+/* 1) لون نص NOVABOT داخل فقاعة نوفا بوت */
+@media (max-width: 1024px) and (prefers-color-scheme: light) {
+  .nova-bot-name {
+    color: #0b1a2a !important; /* أزرق داكن واضح */
+    font-weight: 700;
+  }
+
+  .nova-bot-header-icon {
+    background: #1b577c !important; /* نفس خلفية الوضع الليلي */
+    border: 2px solid #fe930e !important; /* ظل برتقالي خفيف للإطار */
+  }
+}
+
+/* 2) تحسين وضوح النسخة في الهيدر */
+@media (max-width: 1024px) and (prefers-color-scheme: light) {
+  .nova-header-chip {
+    color: #0b1a2a !important;
+    border-color: rgba(27, 87, 124, 0.35) !important;
+    font-weight: 600;
+  }
+}
+
+/* 3) ضبط مكان زر × داخل الهيدر */
+.nova-header-close {
+  margin-right: 2px !important;
+  margin-left: 2px !important;
+  transform: translateY(0) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+@media (max-width: 1024px) {
+  .nova-header-actions {
+    gap: 4px !important;
+  }
+
+  .nova-header-close {
+    font-size: 20px !important;
+    padding: 6px !important;
+  }
+}
+
+/* 4) الهوفر البرتقالي على الروابط داخل فقاعة نوفا بوت */
+@media (max-width: 1024px) and (prefers-color-scheme: light) {
+  .nova-bubble-content a {
+    color: #1b577c !important; /* أزرق أساسي */
+  }
+  .nova-bubble-content a:hover {
+    color: #fe930e !important; /* برتقالي عند الهوفر */
+  }
+}
+
+/* 5) خلفية صورة نوفا بوت في الهيدر – الوضع النهاري */
+@media (max-width: 1024px) and (prefers-color-scheme: light) {
+  .nova-header-avatar {
+    background: linear-gradient(135deg, #132033, #0b1824) !important; /* نفس الخلفية الداكنة */
+    border: 2px solid #fe930e !important; /* إطار برتقالي مع ظل بسيط */
+    box-shadow: 0 0 10px rgba(254, 147, 14, 0.35) !important;
+  }
+}
