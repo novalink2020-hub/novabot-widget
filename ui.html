@@ -1,48 +1,71 @@
-<!-- =======================================================
-     NovaBot v6.9.5 – Shadow DOM UI
-     Structure Only – CSS lives in ui.css
-======================================================= -->
+<div id="novaRoot" class="nova-root">
+  <!-- الزر العائم -->
+  <button class="nova-fab" id="novaFabBtn" aria-label="Open NovaBot chat">
+    <div class="nova-fab-inner">
+      <img
+        src="https://assets.zyrosite.com/YD0w46zZ5ZIrwlP8/uo3osso1o--uuuoss-ossuodeguu-1-fUS15tGQu2AgbmOA.gif"
+        alt="NovaBot Icon"
+      />
+    </div>
+  </button>
 
-<!-- زر عائم -->
-<button id="novaFabBtn" aria-label="Open NovaBot">
-  <img src="https://assets.zyrosite.com/YD0w46zZ5ZIrwlP8/uo3osso1o--uuuoss-ossuodeguu-1-fUS15tGQu2AgbmOA.gif" alt="NovaBot Icon" />
-</button>
-
-<!-- خلفية داكنة -->
-<div id="novaBackdrop" aria-hidden="true">
-
-  <!-- صندوق المحادثة -->
-  <div class="nova-chat-box">
-
-    <!-- الهيدر -->
-    <header class="nova-header">
-      <div class="nova-header-left">
-        <div class="nova-header-avatar">
-          <img src="https://assets.zyrosite.com/YD0w46zZ5ZIrwlP8/novabot-2-f081v1SXHunuZjwP.png" alt="bot" />
+  <!-- خلفية نافذة الدردشة -->
+  <div class="nova-chat-backdrop" id="novaBackdrop" aria-hidden="true">
+    <div class="nova-chat-shell" dir="rtl">
+      <!-- الهيدر -->
+      <header class="nova-chat-header">
+        <div class="nova-header-left">
+          <div class="nova-header-avatar">
+            <img
+              src="https://assets.zyrosite.com/YD0w46zZ5ZIrwlP8/novabot-2-f081v1SXHunuZjwP.png"
+              alt="NovaBot Avatar"
+            />
+          </div>
+          <div class="nova-header-text">
+            <div class="nova-header-title">NOVA BOT</div>
+            <div class="nova-header-subtitle">
+              <span class="nova-dot"></span>
+              <span>مساعدك الذكي لتطوير الأعمال</span>
+            </div>
+          </div>
         </div>
-        <div>
-          <div class="nova-header-title">NOVA BOT</div>
-          <div style="font-size:12px; opacity:.85;">مساعدك الذكي لتطوير الأعمال</div>
+
+        <div class="nova-header-actions">
+          <div class="nova-header-chip">NovaBot v6.9.4</div>
+          <button
+            class="nova-header-close"
+            id="novaCloseBtn"
+            aria-label="إغلاق المحادثة"
+          >
+            ✕
+          </button>
         </div>
-      </div>
+      </header>
 
-      <button id="novaCloseBtn" aria-label="Close">✕</button>
-    </header>
+      <!-- جسم المحادثة -->
+      <main class="nova-chat-body" id="novaChatBody"></main>
 
-    <!-- جسم المحادثة -->
-    <main id="novaChatBody"></main>
-
-    <!-- منطقة الكتابة -->
-    <footer class="nova-footer">
-      <div class="nova-input-wrapper">
-        <textarea 
-          id="novaInput" 
-          placeholder="اكتب رسالتك هنا…" 
-          rows="1"></textarea>
-
-        <button id="novaSendBtn" aria-label="Send Message">➤</button>
-      </div>
-    </footer>
-
+      <!-- الفوتر / حقل الكتابة -->
+      <footer class="nova-chat-footer">
+        <div class="nova-footer-row">
+          <div class="nova-input-wrapper">
+            <textarea
+              id="novaInput"
+              class="nova-input"
+              placeholder="اسأل NovaBot"
+            ></textarea>
+            <div class="nova-input-hint"></div>
+          </div>
+          <button
+            class="nova-send-btn"
+            id="novaSendBtn"
+            aria-label="إرسال"
+            type="button"
+          >
+            <span>➤</span>
+          </button>
+        </div>
+      </footer>
+    </div>
   </div>
 </div>
