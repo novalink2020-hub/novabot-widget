@@ -73,6 +73,7 @@
 
     const STORAGE_KEY = "novabot_v6.9_conversation";
     const STORAGE_TTL_MS = 12 * 60 * 60 * 1000;
+    const EMAIL_STORAGE_KEY = "novabot_user_email"; // لتخزين آخر إيميل أدخله المستخدم
 
     // عناصر الواجهة
     const fabBtn = root.getElementById("novaFabBtn");
@@ -243,6 +244,36 @@
       playNovaSound();
     }
 
+    // Toast / إشعار صغير داخل الفقاعة لعمليات البطاقات
+    function showActionToast(message) {
+      const botRows = chatBody.querySelectorAll(".nova-msg-row.nova-bot");
+      const lastBot = botRows[botRows.length - 1];
+      let container = null;
+
+      if (lastBot) {
+        container =
+          lastBot.querySelector(".nova-bubble-content") ||
+          lastBot.querySelector(".nova-bubble") ||
+          lastBot;
+      } else {
+        container = chatBody;
+      }
+
+      const notice = document.createElement("div");
+      notice.className = "nova-system-msg";
+      notice.textContent = message;
+
+      container.appendChild(notice);
+      scrollToBottom();
+
+      setTimeout(() => {
+        // إزالة الإشعار بعد وقت قصير
+        if (notice && notice.parentNode) {
+          notice.parentNode.removeChild(notice);
+        }
+      }, 2500);
+    }
+
     // ============================================================
     //                     API CALL
     // ============================================================
@@ -272,6 +303,135 @@
     // ============================================================
     //                   بطاقات نوفا بوت
     // ============================================================
+    // تفعيل منطق البطاقات (اشترك / صفحة الاشتراك / خدمات / تعاون)
+    function initCardBehavior(cardEl) {
+      if (!cardEl) return;
+
+      const headerEl = cardEl.querySelector(".nova-card-header");
+      const inputEl = cardEl.querySelector(".nova-card-input");
+      const primaryBtn = cardEl.querySelector(".nova-card-btn-primary");
+      const secondaryBtn = cardEl.querySelector(".nova-card-btn-secondary");
+
+      const headerText = headerEl ? headerEl.textContent.trim() : "";
+
+      const isSubscribeCard =
+        /اشترك|طوّر عملك|طوّر عملك خطوة بخطوة|subscribe/i.test(headerText);
+
+      const isCollabCard =
+        /تعاون|شراكة|collaborat/i.test(headerText);
+
+      // إعداد حقل الإدخال (ايميل غالباً)
+      if (inputEl) {
+        inputEl.setAttribute("autocomplete", "email");
+        inputEl.setAttribute("inputmode", "email");
+
+        try {
+          const storedEmail = localStorage.getItem(EMAIL_STORAGE_KEY);
+          if (storedEmail && !inputEl.value) {
+            inputEl.value = storedEmail;
+          }
+        } catch (e) {}
+      }
+
+      // بطاقة الاشتراك / الأعمال
+      if (isSubscribeCard) {
+        if (primaryBtn && inputEl) {
+          primaryBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const val = (inputEl.value || "").trim();
+
+            if (!val) {
+              const msg =
+                lang === "en"
+                  ? "Please enter your email first."
+                  : "من فضلك أدخل بريدك الإلكتروني أولاً.";
+              showActionToast(msg);
+              inputEl.focus();
+              return;
+            }
+
+            // حفظ الإيميل محليًا
+            try {
+              if (val.includes("@")) {
+                localStorage.setItem(EMAIL_STORAGE_KEY, val);
+              }
+            } catch (e) {}
+
+            const msg =
+              lang === "en"
+                ? "Subscribed successfully ✓"
+                : "تم الاشتراك بنجاح ✓";
+            showActionToast(msg);
+          });
+        }
+
+        if (secondaryBtn) {
+          secondaryBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            const btnText = secondaryBtn.textContent || "";
+
+            // التمييز بين "صفحة الخدمات" و "صفحة الاشتراك"
+            const goServices =
+              /الخدمات|services/i.test(btnText) && config.SERVICES_URL;
+            const goSubscribe =
+              !goServices && config.SUBSCRIBE_URL;
+
+            if (goServices) {
+              window.open(config.SERVICES_URL, "_blank");
+              const msg =
+                lang === "en"
+                  ? "Services page opened."
+                  : "تم فتح صفحة الخدمات.";
+              showActionToast(msg);
+            } else if (goSubscribe) {
+              window.open(config.SUBSCRIBE_URL, "_blank");
+              const msg =
+                lang === "en"
+                  ? "Subscribe page opened."
+                  : "تم فتح صفحة الاشتراك.";
+              showActionToast(msg);
+            }
+          });
+        }
+      }
+
+      // بطاقة التعاون / الشراكات – اعتمادًا على العنوان
+      if (isCollabCard && primaryBtn) {
+        primaryBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+
+          const contactVal = inputEl ? (inputEl.value || "").trim() : "";
+
+          const subject =
+            lang === "en"
+              ? "NovaLink - Collaboration Request"
+              : "نوفا لينك - طلب تعاون";
+
+          const body =
+            lang === "en"
+              ? `Visitor contact: ${contactVal || "Not provided"}\n\nMessage:`
+              : `بيانات طريقة التواصل:\n${contactVal || "لم يتم كتابة وسيلة تواصل"}\n\nتفاصيل إضافية:`; // mailto body
+
+          const mailto =
+            "mailto:" +
+            encodeURIComponent(config.CONTACT_EMAIL) +
+            "?subject=" +
+            encodeURIComponent(subject) +
+            "&body=" +
+            encodeURIComponent(body);
+
+          window.location.href = mailto;
+
+          const msg =
+            lang === "en"
+              ? "Email window prepared for collaboration."
+              : "تم تجهيز رسالة البريد للتعاون.";
+          showActionToast(msg);
+        });
+      }
+    }
+
     function appendCardInsideLastBotBubble(cardEl) {
       if (!cardEl) return;
 
@@ -282,6 +442,8 @@
         if (!lastBot) {
           chatBody.appendChild(cardEl);
           scrollToBottom();
+          // تفعيل منطق البطاقة الجديدة
+          initCardBehavior(cardEl);
           return;
         }
 
@@ -297,6 +459,8 @@
         }
 
         scrollToBottom();
+        // تفعيل منطق البطاقة بعد إدراجها
+        initCardBehavior(cardEl);
       };
 
       if (isTypingAnimationActive) pendingCardCallbacks.push(doAppend);
