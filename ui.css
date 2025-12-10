@@ -105,6 +105,18 @@
   pointer-events: auto;
 }
 
+/* تثبيت الواجهة يمين الشاشة في الديسكتوب بشكل صريح */
+@media (min-width: 1025px) {
+  .nova-chat-backdrop {
+    justify-content: flex-end !important;
+    align-items: flex-end !important;
+  }
+  .nova-chat-shell {
+    margin-right: 20px !important;
+    margin-left: 16px !important;
+  }
+}
+
 /* ============ نافذة الشات – الوضع الليلي الافتراضي (ديسكتوب دائمًا) ============ */
 .nova-chat-shell {
   position: relative;
@@ -163,9 +175,11 @@
   justify-content: center;
   border: 1.8px solid rgba(254, 147, 14, 0.85);
   padding: 2px;
+  /* ظل محسّن يعطي عمق ناعم للصورة */
   box-shadow:
-    0 0 0 1px rgba(254, 147, 14, 0.4),
-    0 8px 18px rgba(0, 0, 0, 0.65);
+    0 0 0 2px rgba(254, 147, 14, 0.3),
+    0 7px 16px rgba(0, 0, 0, 0.65),
+    0 0 20px rgba(254, 147, 14, 0.15);
 }
 .nova-header-avatar img {
   width: 100%;
@@ -329,12 +343,16 @@
 .nova-bubble-content {
   font-size: 15px;
 }
+
+/* روابط داخل فقاعات نوفا بوت – ليلي */
 .nova-bubble-content a {
-  color: #ffdd9a;
-  text-decoration: underline;
+  color: var(--nova-blue);
+  text-decoration: none;
+  font-weight: 600;
 }
 .nova-bubble-content a:hover {
   color: var(--nova-orange);
+  text-decoration: underline;
 }
 
 /* ============ مؤشر الكتابة ============ */
@@ -387,7 +405,7 @@
     rgba(0, 0, 0, 0.38) 100%
   );
   z-index: 3;
-  backdrop-filter: blur(2px); /* تعديل البلار */
+  backdrop-filter: blur(2px); /* تعديل بلار */
 }
 .nova-input-wrapper {
   position: relative;
@@ -397,7 +415,7 @@
 /* حقل الكتابة – يتمدد حتى 4 أسطر تقريبًا */
 .nova-input {
   width: 100%;
-  padding: 7px 52px 7px 10px; /* مساحة لزر الإرسال على اليمين */
+  padding: 7px 60px 7px 10px; /* مساحة مريحة لزر الإرسال على اليمين */
   border-radius: 14px;
   border: 1px solid rgba(192, 209, 224, 0.55);
   background: rgba(7, 15, 24, 0.98);
@@ -478,12 +496,14 @@
   margin: 6px 0 2px;
 }
 .nova-link {
-  color: #ffdd9a;
-  text-decoration: underline;
+  color: var(--nova-blue);
+  text-decoration: none;
   cursor: pointer;
+  font-weight: 600;
 }
 .nova-link:hover {
   color: var(--nova-orange);
+  text-decoration: underline;
 }
 
 /* ============ البطاقات ============ */
@@ -606,9 +626,14 @@
   }
 
   .nova-header-title,
-  .nova-header-subtitle,
-  .nova-bot-name {
+  .nova-header-subtitle {
     color: var(--nova-blue-deep);
+  }
+
+  /* اسم NOVABOT في النهاري – أزرق داكن أوضح */
+  .nova-bot-name {
+    color: #0d2438 !important;
+    font-weight: 800 !important;
   }
 
   .nova-header-avatar {
@@ -699,11 +724,15 @@
     );
   }
 
+  /* روابط الفقاعات في النهاري – أزرق أنسب + هوفر برتقالي */
   .nova-bubble-content a {
-    color: var(--nova-blue);
+    color: #17496a;
+    font-weight: 700;
+    text-decoration: none;
   }
   .nova-bubble-content a:hover {
     color: var(--nova-orange);
+    text-decoration: underline;
   }
 
   .nova-header-close {
