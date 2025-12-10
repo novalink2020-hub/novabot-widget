@@ -1,5 +1,5 @@
 /* ==========================================================
-   NovaBot v6.9.7 – UI Styles (Shadow DOM – SaaS Ultra)
+   NovaBot v6.9 – UI Styles (Shadow DOM – SaaS Ultra Final)
    ========================================================== */
 
 /* تحميل خط Tajawal داخل الـ Shadow DOM */
@@ -94,7 +94,7 @@
   );
   display: flex;
   align-items: flex-end;
-  justify-content: flex-end;
+  justify-content: flex-end; /* يمين المستخدم على الديسكتوب/التابلت */
   z-index: 9998;
   opacity: 0;
   pointer-events: none;
@@ -105,7 +105,7 @@
   pointer-events: auto;
 }
 
-/* ============ نافذة الشات – الوضع الليلي الافتراضي ============ */
+/* ============ نافذة الشات – الوضع الليلي الافتراضي (ديسكتوب دائمًا) ============ */
 .nova-chat-shell {
   position: relative;
   margin: 16px 16px 110px 16px;
@@ -163,6 +163,9 @@
   justify-content: center;
   border: 1.8px solid rgba(254, 147, 14, 0.85);
   padding: 2px;
+  box-shadow:
+    0 0 0 1px rgba(254, 147, 14, 0.4),
+    0 8px 18px rgba(0, 0, 0, 0.65);
 }
 .nova-header-avatar img {
   width: 100%;
@@ -216,6 +219,11 @@
   padding: 4px;
   border-radius: 999px;
   transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
+  min-width: 28px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .nova-header-close:hover {
   background: rgba(255, 255, 255, 0.08);
@@ -326,7 +334,7 @@
   text-decoration: underline;
 }
 .nova-bubble-content a:hover {
-  color: #fe930e;
+  color: var(--nova-orange);
 }
 
 /* ============ مؤشر الكتابة ============ */
@@ -372,7 +380,6 @@
   align-items: flex-end;
   gap: 8px;
   flex-direction: row-reverse;
-  /* شفافية متدرجة بدون blur – أسلوب ChatGPT */
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.00) 0%,
@@ -380,6 +387,7 @@
     rgba(0, 0, 0, 0.38) 100%
   );
   z-index: 3;
+  backdrop-filter: blur(2px); /* تعديل البلار */
 }
 .nova-input-wrapper {
   position: relative;
@@ -389,7 +397,7 @@
 /* حقل الكتابة – يتمدد حتى 4 أسطر تقريبًا */
 .nova-input {
   width: 100%;
-  padding: 7px 10px 7px 52px;
+  padding: 7px 52px 7px 10px; /* مساحة لزر الإرسال على اليمين */
   border-radius: 14px;
   border: 1px solid rgba(192, 209, 224, 0.55);
   background: rgba(7, 15, 24, 0.98);
@@ -422,7 +430,7 @@
   color: rgba(180, 199, 220, 0.75);
 }
 
-/* زر الإرسال – بيضاوي قريب من صورة نوفا بوت */
+/* زر الإرسال – ثابت الموضع لا يتحرك مع تمدد حقل الكتابة */
 .nova-send-btn {
   border-radius: 999px;
   border: none;
@@ -443,6 +451,9 @@
     opacity 0.15s ease;
   min-width: 44px;
   min-height: 44px;
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
 }
 .nova-send-btn:hover {
   transform: translateY(-1px);
@@ -559,7 +570,7 @@
 @media (max-width: 768px) {
   .nova-chat-backdrop {
     align-items: flex-end;
-    justify-content: center;
+    justify-content: center; /* موبايل: في منتصف أسفل الشاشة */
   }
   .nova-chat-shell {
     margin: 0 10px 12px 10px;
@@ -601,7 +612,16 @@
   }
 
   .nova-header-avatar {
-    background: #1b577c;
+    background: rgba(7, 15, 24, 0.95);
+    box-shadow:
+      0 0 0 2px rgba(254, 147, 14, 0.35),
+      0 10px 20px rgba(27, 87, 124, 0.25);
+  }
+
+  .nova-header-chip {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--nova-blue-deep);
+    border-color: rgba(27, 87, 124, 0.28);
   }
 
   .nova-chat-body {
