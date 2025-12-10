@@ -405,7 +405,7 @@
     rgba(0, 0, 0, 0.38) 100%
   );
   z-index: 3;
-  backdrop-filter: blur(2px); /* تعديل بلار */
+  backdrop-filter: blur(1px); /* تعديل بلار */
 }
 .nova-input-wrapper {
   position: relative;
