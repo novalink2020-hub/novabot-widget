@@ -94,7 +94,7 @@
   );
   display: flex;
   align-items: flex-end;
-  justify-content: flex-end; /* يمين المستخدم على الديسكتوب/التابلت */
+  justify-content: flex-start; /* ✅ يسار الشاشة على الديسكتوب/التابلت */
   z-index: 9998;
   opacity: 0;
   pointer-events: none;
@@ -105,15 +105,15 @@
   pointer-events: auto;
 }
 
-/* تثبيت الواجهة يمين الشاشة في الديسكتوب بشكل صريح */
-@media (min-width: 1025px) {
+/* تثبيت الواجهة يسار الشاشة في الديسكتوب والتابلت بشكل صريح */
+@media (min-width: 769px) {
   .nova-chat-backdrop {
-    justify-content: flex-end !important;
+    justify-content: flex-start !important;
     align-items: flex-end !important;
   }
   .nova-chat-shell {
-    margin-right: 20px !important;
-    margin-left: 16px !important;
+    margin-left: 20px !important;
+    margin-right: 16px !important;
   }
 }
 
@@ -175,11 +175,11 @@
   justify-content: center;
   border: 1.8px solid rgba(254, 147, 14, 0.85);
   padding: 2px;
-  /* ظل محسّن يعطي عمق ناعم للصورة */
+  /* ✅ ظل ناعم لطيف يعطي عمق احترافي */
   box-shadow:
-    0 0 0 2px rgba(254, 147, 14, 0.3),
-    0 7px 16px rgba(0, 0, 0, 0.65),
-    0 0 20px rgba(254, 147, 14, 0.15);
+    0 0 0 2px rgba(254, 147, 14, 0.32),
+    0 8px 18px rgba(0, 0, 0, 0.6),
+    0 0 22px rgba(254, 147, 14, 0.18);
 }
 .nova-header-avatar img {
   width: 100%;
@@ -344,14 +344,14 @@
   font-size: 15px;
 }
 
-/* روابط داخل فقاعات نوفا بوت – ليلي */
+/* ✅ روابط داخل فقاعات نوفا بوت – ليلي */
 .nova-bubble-content a {
-  color: var(--nova-blue);
+  color: #2a6a94; /* أزرق داكن لطيف قبل الضغط */
   text-decoration: none;
   font-weight: 600;
 }
 .nova-bubble-content a:hover {
-  color: var(--nova-orange);
+  color: var(--nova-orange); /* ✅ هوفر برتقالي */
   text-decoration: underline;
 }
 
@@ -412,10 +412,10 @@
   flex: 1;
 }
 
-/* حقل الكتابة – يتمدد حتى 4 أسطر تقريبًا */
+/* ✅ حقل الكتابة: يأخذ كل المساحة المتبقية أفقياً بدون تداخل مع زر الإرسال */
 .nova-input {
   width: 100%;
-  padding: 7px 60px 7px 10px; /* مساحة مريحة لزر الإرسال على اليمين */
+  padding: 7px 12px 7px 12px;
   border-radius: 14px;
   border: 1px solid rgba(192, 209, 224, 0.55);
   background: rgba(7, 15, 24, 0.98);
@@ -448,7 +448,7 @@
   color: rgba(180, 199, 220, 0.75);
 }
 
-/* زر الإرسال – ثابت الموضع لا يتحرك مع تمدد حقل الكتابة */
+/* ✅ زر الإرسال – في حيز منفصل أفقياً، لا يغطي حقل الكتابة */
 .nova-send-btn {
   border-radius: 999px;
   border: none;
@@ -469,9 +469,7 @@
     opacity 0.15s ease;
   min-width: 44px;
   min-height: 44px;
-  position: absolute;
-  right: 16px;
-  bottom: 14px;
+  /* بدون position absolute – يأخذ مكانه الطبيعي في الفوتر */
 }
 .nova-send-btn:hover {
   transform: translateY(-1px);
@@ -496,7 +494,7 @@
   margin: 6px 0 2px;
 }
 .nova-link {
-  color: var(--nova-blue);
+  color: #2a6a94;
   text-decoration: none;
   cursor: pointer;
   font-weight: 600;
@@ -630,7 +628,7 @@
     color: var(--nova-blue-deep);
   }
 
-  /* اسم NOVABOT في النهاري – أزرق داكن أوضح */
+  /* ✅ اسم NOVABOT في النهاري – أزرق داكن أوضح */
   .nova-bot-name {
     color: #0d2438 !important;
     font-weight: 800 !important;
@@ -724,7 +722,7 @@
     );
   }
 
-  /* روابط الفقاعات في النهاري – أزرق أنسب + هوفر برتقالي */
+  /* ✅ روابط الفقاعات في النهاري – أزرق مناسب + هوفر برتقالي */
   .nova-bubble-content a {
     color: #17496a;
     font-weight: 700;
