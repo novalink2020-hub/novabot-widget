@@ -1,31 +1,28 @@
-/* ==========================================================
-   NovaBot v6.9 – Shadow DOM Loader (PRO Production Build)
+/* NovaBot v6.9.7 – Shadow DOM Loader
    يعمل مع:
    - ui.css
    - ui.html
-   ========================================================== */
+*/
 
 (function () {
-  if (window.__NovaBotShadowLoaded) return;
-  window.__NovaBotShadowLoaded = true;
-
   const scriptEl = document.currentScript;
   if (!scriptEl) return;
 
   const API_URL = scriptEl.getAttribute("data-novabot-api") || "";
   const LOCALE = scriptEl.getAttribute("data-novabot-locale") || "ar";
 
-  /* ---------------------------------------------------------
-     إنشاء الـ Shadow Host
-  --------------------------------------------------------- */
+  // إنشاء حاوية للشادو
   const host = document.createElement("div");
   host.id = "novabot-shadow-host";
-  host.style.position = "relative";
+  host.style.position = "fixed";
+  host.style.inset = "0";
   host.style.zIndex = "9999";
+  host.style.pointerEvents = "auto"; // مهم لعمل الضغط داخل الواجهة
   document.body.appendChild(host);
 
   const shadow = host.attachShadow({ mode: "open" });
 
+  // مسار الملفات ui.css و ui.html
   const baseUrl = scriptEl.src.replace(/[^\/]+$/, "");
   const cssUrl = baseUrl + "ui.css";
   const htmlUrl = baseUrl + "ui.html";
@@ -38,19 +35,21 @@
       shadow.innerHTML = `<style>${cssText}</style>${htmlText}`;
       initNovaBot(shadow, { apiUrl: API_URL, locale: LOCALE });
     })
-    .catch((err) => console.error("NovaBot loader error:", err));
+    .catch((err) => {
+      console.error("NovaBot loader error:", err);
+    });
 
-  /* ==========================================================
-     NovaBot Logic
-  ========================================================== */
+  // ============================================================
+  //                      NovaBot Logic
+  // ============================================================
   function initNovaBot(root, options) {
     const config = {
       BRAND_NAME: "نوفا لينك",
       PRIMARY_COLOR: "#1b577c",
       ACCENT_COLOR: "#fe930e",
 
-      API_PRIMARY: options.apiUrl,
-      API_FALLBACK: options.apiUrl,
+      API_PRIMARY: options.apiUrl || "",
+      API_FALLBACK: options.apiUrl || "",
 
       CHANNEL: "web",
       BUSINESS_TYPE: "blog",
@@ -61,6 +60,7 @@
 
       SUBSCRIBE_URL: "https://novalink-ai.com/ashtrk-alan",
       SERVICES_URL: "https://novalink-ai.com/services-khdmat-nwfa-lynk",
+      FEEDBACK_API: "",
       CONTACT_EMAIL: "contact@novalink-ai.com"
     };
 
@@ -68,15 +68,13 @@
 
     const WELCOME_HTML =
       lang === "en"
-        ? "Welcome to NovaLink 👋<br>I'm NovaBot… ready to help you."
-        : "مرحباً بك في نوفا لينك 👋<br>أنا نوفا بوت… جاهز لمساعدتك دائماً.";
+        ? "Welcome to NovaLink 👋<br>I'm NovaBot… ready to help you with AI and business growth questions."
+        : "مرحباً بك في نوفا لينك 👋<br>أنا نوفا بوت… جاهز لمساعدتك في أي سؤال حول الذكاء الاصطناعي وتطوير أعمالك.";
 
     const STORAGE_KEY = "novabot_v6.9_conversation";
-    const EMAIL_KEY = "novabot_saved_email";
+    const STORAGE_TTL_MS = 12 * 60 * 60 * 1000;
 
-    /* ---------------------------------------------------------
-       عناصر الواجهة داخل الشادو
-    --------------------------------------------------------- */
+    // عناصر الواجهة
     const fabBtn = root.getElementById("novaFabBtn");
     const backdrop = root.getElementById("novaBackdrop");
     const closeBtn = root.getElementById("novaCloseBtn");
@@ -85,28 +83,29 @@
     const sendBtn = root.getElementById("novaSendBtn");
 
     if (!fabBtn || !backdrop || !closeBtn || !chatBody || !input || !sendBtn) {
-      console.error("NovaBot elements missing");
+      console.error("NovaBot UI elements missing");
       return;
     }
 
-    /* ---------------------------------------------------------
-       حالة النظام
-    --------------------------------------------------------- */
+    // الحالة الداخلية
     let chatHistory = [];
     let soundCount = 0;
     let novaChatOpen = false;
+
+    let currentBotRow = null;
     let typingIntervalId = null;
     let isTypingAnimationActive = false;
-    let currentBotRow = null;
     const pendingCardCallbacks = [];
 
-    /* ---------------------------------------------------------
-       Helpers
-    --------------------------------------------------------- */
-    function isMobileViewport() {
-      return window.innerWidth <= 1024;
-    }
+    let subscribeCardShown = false;
+    let botCardShown = false;
+    let businessCardShown = false;
+    let collabCardShown = false;
+    let devCardShown = false;
 
+    // ============================================================
+    //                     Helpers
+    // ============================================================
     function escapeHtml(str) {
       return (str || "").replace(/[&<>"]/g, (c) => {
         return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] || c;
@@ -118,25 +117,27 @@
     }
 
     function playNovaSound() {
-      if (!config.SOUND_URL || soundCount >= 3) return;
+      if (!config.SOUND_URL) return;
+      if (soundCount >= 3) return;
+
       try {
-        new Audio(config.SOUND_URL).play().catch(() => {});
+        const a = new Audio(config.SOUND_URL);
+        a.play().catch(() => {});
         soundCount++;
-      } catch {}
+      } catch (e) {}
     }
 
-    function clearTyping() {
-      if (typingIntervalId) clearInterval(typingIntervalId);
-      typingIntervalId = null;
+    function clearTypingState() {
+      if (typingIntervalId) {
+        clearInterval(typingIntervalId);
+        typingIntervalId = null;
+      }
       isTypingAnimationActive = false;
       pendingCardCallbacks.length = 0;
     }
 
-    /* ---------------------------------------------------------
-       Typing Bubble
-    --------------------------------------------------------- */
     function startThinkingBubble() {
-      clearTyping();
+      clearTypingState();
 
       currentBotRow = document.createElement("div");
       currentBotRow.className = "nova-msg-row nova-bot";
@@ -145,7 +146,7 @@
         <div class="nova-bubble nova-bubble-bot">
           <div class="nova-bot-header">
             <div class="nova-bot-header-icon">
-              <img src="https://assets.zyrosite.com/YD0w46zZ5ZIrwlP8/novabot-2-f081v1SXHunuZjwP.png"/>
+              <img src="https://assets.zyrosite.com/YD0w46zZ5ZIrwlP8/novabot-2-f081v1SXHunuZjwP.png" alt="NovaBot" />
             </div>
             <div class="nova-bot-name">NOVABOT</div>
           </div>
@@ -159,55 +160,72 @@
               </span>
             </div>
           </div>
-        </div>`;
+        </div>
+      `;
 
       chatBody.appendChild(currentBotRow);
       scrollToBottom();
     }
 
-    function typeReply(html) {
-      if (!currentBotRow) startThinkingBubble();
-
-      const el = currentBotRow.querySelector(".nova-bubble-content");
-      if (!el) return;
-
-      clearTyping();
-
-      const txt = html.toString();
-      let i = 0;
-
-      typingIntervalId = setInterval(() => {
-        el.innerHTML = txt.slice(0, i++);
-        scrollToBottom();
-        if (i > txt.length) {
-          clearTyping();
-          playNovaSound();
-          while (pendingCardCallbacks.length)
-            pendingCardCallbacks.shift()();
-        }
-      }, 18);
+    function computeTypingSpeed(length) {
+      if (length <= 80) return 25;
+      if (length <= 180) return 18;
+      if (length <= 350) return 12;
+      return 9;
     }
 
-    /* ---------------------------------------------------------
-       User Message
-    --------------------------------------------------------- */
+    function typeReplyInCurrentBubble(html) {
+      if (!currentBotRow) startThinkingBubble();
+
+      const contentEl = currentBotRow.querySelector(".nova-bubble-content");
+      if (!contentEl) return;
+
+      clearTypingState();
+
+      const full = html.toString();
+      const length = full.length || 1;
+      const speed = computeTypingSpeed(length);
+
+      let i = 0;
+      isTypingAnimationActive = true;
+
+      typingIntervalId = setInterval(() => {
+        contentEl.innerHTML = full.slice(0, i);
+        i++;
+        scrollToBottom();
+
+        if (i > length) {
+          clearInterval(typingIntervalId);
+          typingIntervalId = null;
+          isTypingAnimationActive = false;
+
+          playNovaSound();
+
+          while (pendingCardCallbacks.length > 0) {
+            const cb = pendingCardCallbacks.shift();
+            try {
+              cb();
+            } catch (e) {}
+          }
+        }
+      }, speed);
+    }
+
     function addUserMessage(text) {
       const row = document.createElement("div");
       row.className = "nova-msg-row nova-user";
-      row.innerHTML = `<div class="nova-bubble nova-bubble-user">${escapeHtml(
-        text
-      )}</div>`;
+      row.innerHTML = `
+        <div class="nova-bubble nova-bubble-user">
+          ${escapeHtml(text)}
+        </div>
+      `;
       chatBody.appendChild(row);
       scrollToBottom();
     }
 
-    /* ---------------------------------------------------------
-       Bot Message
-    --------------------------------------------------------- */
     function addStaticBotMessage(html) {
       const row = document.createElement("div");
       row.className = "nova-msg-row nova-bot";
-
       row.innerHTML = `
         <div class="nova-bubble nova-bubble-bot">
           <div class="nova-bot-header">
@@ -217,214 +235,218 @@
             <div class="nova-bot-name">NOVABOT</div>
           </div>
           <div class="nova-bubble-content">${html}</div>
-        </div>`;
-
+        </div>
+      `;
       currentBotRow = row;
       chatBody.appendChild(row);
       scrollToBottom();
       playNovaSound();
     }
 
-    /* ---------------------------------------------------------
-       API
-    --------------------------------------------------------- */
-    async function callNovaApi(msg) {
-      if (!config.API_PRIMARY) return { ok: false };
+    // ============================================================
+    //                     API CALL
+    // ============================================================
+    async function callNovaApi(message) {
+      if (!config.API_PRIMARY) return { ok: false, reply: "" };
 
       try {
         const res = await fetch(config.API_PRIMARY, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: msg })
+          body: JSON.stringify({ message })
         });
 
+        if (!res.ok) return { ok: false, reply: "" };
+
         const data = await res.json();
-        return { ok: data.ok, reply: data.reply, actionCard: data.actionCard };
+        return {
+          ok: data.ok,
+          reply: data.reply,
+          actionCard: data.actionCard || null
+        };
       } catch {
-        return { ok: false };
+        return { ok: false, reply: "" };
       }
     }
 
-    /* ==========================================================
-       Cards + Actions
-    ========================================================== */
-
-    /** Insert card inside last bot bubble */
+    // ============================================================
+    //                   بطاقات نوفا بوت
+    // ============================================================
     function appendCardInsideLastBotBubble(cardEl) {
-      const botRows = chatBody.querySelectorAll(".nova-msg-row.nova-bot");
-      const lastBot = botRows[botRows.length - 1];
+      if (!cardEl) return;
 
-      if (!lastBot) {
-        chatBody.appendChild(cardEl);
+      const doAppend = () => {
+        const botRows = chatBody.querySelectorAll(".nova-msg-row.nova-bot");
+        const lastBot = botRows[botRows.length - 1];
+
+        if (!lastBot) {
+          chatBody.appendChild(cardEl);
+          scrollToBottom();
+          return;
+        }
+
+        const contentEl = lastBot.querySelector(".nova-bubble-content");
+
+        if (!contentEl) {
+          lastBot.insertAdjacentElement("afterend", cardEl);
+        } else {
+          const sep = document.createElement("div");
+          sep.className = "nova-card-separator";
+          contentEl.appendChild(sep);
+          contentEl.appendChild(cardEl);
+        }
+
         scrollToBottom();
-        return;
-      }
+      };
 
-      const content = lastBot.querySelector(".nova-bubble-content");
-
-      if (content) {
-        const sep = document.createElement("div");
-        sep.className = "nova-card-separator";
-        content.appendChild(sep);
-        content.appendChild(cardEl);
-      } else {
-        lastBot.insertAdjacentElement("afterend", cardEl);
-      }
-
-      scrollToBottom();
+      if (isTypingAnimationActive) pendingCardCallbacks.push(doAppend);
+      else doAppend();
     }
 
-    /** Create Subscribe Card */
-    function createSubscribeCard() {
+    function detectLangFromText(text) {
+      return /[A-Za-z]/.test(text) ? "en" : "ar";
+    }
+
+    function createDeveloperCard(langPref) {
+      const langDev = langPref === "en" ? "en" : "ar";
+
       const card = document.createElement("div");
       card.className = "nova-card";
 
-      const savedEmail = localStorage.getItem(EMAIL_KEY) || "";
+      const title =
+        langDev === "en"
+          ? "👨‍💻 Who Built NovaBot?"
+          : "👨‍💻 من يقف خلف نوفا بوت؟";
+
+      const text =
+        langDev === "en"
+          ? "“Mohammed Abu Sunaina — a developer who blended banking experience with artificial intelligence.\nHe is building NovaLink as a practical space that helps entrepreneurs use smart tools with clarity and confidence.”"
+          : "“محمد أبو سنينة—مطور عربي جمع خبرته بين العمل المصرفي والذكاء الاصطناعي.\nيبني نوفا لينك كمساحة عملية تساعد روّاد الأعمال على استخدام الأدوات الذكية بثقة ووضوح.”";
 
       card.innerHTML = `
-        <div class="nova-card-header">📧 اشترك في نوفا لينك</div>
-        <div class="nova-card-text">ابدأ رحلتك معنا… نحو إنتاجيةٍ تنمو كل يوم. ✨</div>
-        <input autocomplete="email" type="email" class="nova-card-input" value="${savedEmail}" placeholder="email@example.com">
+        <div class="nova-card-header">${title}</div>
+        <div class="nova-card-text">${text.replace(/\n/g, "<br>")}</div>
+      `;
+
+      return card;
+    }
+
+    function showCardByType(cardType, lastUserMessage) {
+      let card = null;
+
+      switch (cardType) {
+        case "subscribe":
+          if (subscribeCardShown) return;
+          subscribeCardShown = true;
+          card = createSubscribeCard("default");
+          break;
+        case "business_subscribe":
+          if (businessCardShown) return;
+          businessCardShown = true;
+          card = createBusinessCard();
+          break;
+        case "bot_lead":
+          if (botCardShown) return;
+          botCardShown = true;
+          card = createBotLeadCard();
+          break;
+        case "collaboration":
+          if (collabCardShown) return;
+          collabCardShown = true;
+          card = createCollaborationCard();
+          break;
+        case "developer_identity":
+          if (devCardShown) return;
+          devCardShown = true;
+          card = createDeveloperCard(
+            detectLangFromText(lastUserMessage)
+          );
+          break;
+        default:
+          return;
+      }
+
+      appendCardInsideLastBotBubble(card);
+    }
+
+    function createSubscribeCard(type) {
+      const card = document.createElement("div");
+      card.className = "nova-card";
+
+      const isBusiness = type === "business";
+
+      const title = isBusiness
+        ? "📧 طوّر عملك خطوة بخطوة"
+        : "📧 اشترك في نوفا لينك";
+
+      const text = isBusiness
+        ? "إذا كان تطوّر أعمالك يهمك فعلاً، فمتابعة التحديثات في الذكاء الاصطناعي للأعمال ليست رفاهية."
+        : "ابدأ رحلتك معنا… نحو إنتاجيةٍ تنمو كل يوم. ✨";
+
+      card.innerHTML = `
+        <div class="nova-card-header">${title}</div>
+        <div class="nova-card-text">${text}</div>
+        <input type="email" class="nova-card-input" placeholder="email@example.com" />
         <div class="nova-card-actions">
           <button class="nova-card-btn nova-card-btn-primary">اشتراك</button>
-          <button class="nova-card-btn nova-card-btn-secondary">صفحة الاشتراك</button>
-        </div>`;
-      return card;
-    }
-
-    /** Create Collaboration Card */
-    function createCollaborationCard() {
-      const card = document.createElement("div");
-      card.className = "nova-card";
-
-      const savedEmail = localStorage.getItem(EMAIL_KEY) || "";
-
-      card.innerHTML = `
-        <div class="nova-card-header">🤝 تواصل للتعاون</div>
-        <div class="nova-card-text">أرسل وسيلة التواصل المناسبة لنرجع إليك.</div>
-        <input autocomplete="email" class="nova-card-input" value="${savedEmail}" placeholder="email أو رقم هاتف">
-        <div class="nova-card-actions">
-          <button class="nova-card-btn nova-card-btn-primary">تواصل</button>
-          <button class="nova-card-btn nova-card-btn-secondary">صفحة الخدمات</button>
-        </div>`;
-      return card;
-    }
-
-    /** Feedback helper */
-    function showFeedback(text) {
-      const row = document.createElement("div");
-      row.className = "nova-action-feedback";
-      row.style.cssText = `
-        font-size: 12px;
-        color: rgba(196,210,230,0.85);
-        margin-top: 4px;
-        opacity: 0;
-        transition: opacity 0.3s ease;
+          <button class="nova-card-btn nova-card-btn-secondary">
+            ${isBusiness ? "صفحة الخدمات" : "صفحة الاشتراك"}
+          </button>
+        </div>
       `;
-      row.textContent = text;
 
-      currentBotRow
-        ?.querySelector(".nova-bubble-content")
-        ?.appendChild(row);
-      scrollToBottom();
-
-      setTimeout(() => (row.style.opacity = "1"), 10);
-
-      setTimeout(() => {
-        row.style.opacity = "0";
-        setTimeout(() => row.remove(), 300);
-      }, 2500);
+      return card;
     }
 
-    /** Handle card button click */
-    function handleCardAction(btn) {
-      const label = btn.textContent.trim();
-      const card = btn.closest(".nova-card");
-      if (!card) return;
-
-      const inputEl = card.querySelector(".nova-card-input");
-      const val = inputEl?.value?.trim() || "";
-
-      if (val) localStorage.setItem(EMAIL_KEY, val);
-
-      /* -------- اشتراك -------- */
-      if (label === "اشتراك") {
-        showFeedback("✔ تم الاشتراك");
-        return;
-      }
-
-      if (label === "صفحة الاشتراك") {
-        window.open(config.SUBSCRIBE_URL, "_blank");
-        showFeedback("✔ تم فتح صفحة الاشتراك");
-        return;
-      }
-
-      /* -------- صفحة الخدمات -------- */
-      if (label === "صفحة الخدمات") {
-        window.open(config.SERVICES_URL, "_blank");
-        showFeedback("✔ تم فتح صفحة الخدمات");
-        return;
-      }
-
-      /* -------- تواصل -------- */
-      if (label === "تواصل") {
-        const mail = config.CONTACT_EMAIL;
-        const mailto = `mailto:${mail}?subject=تواصل من نوفا بوت&body=بيانات التواصل: ${encodeURIComponent(
-          val
-        )}`;
-        window.location.href = mailto;
-        showFeedback("✔ جاهز لإرسال بريدك الآن");
-        return;
-      }
-
-      /* fallback */
-      showFeedback("✔ تم التنفيذ");
-    }
-
-    /* Delegation listener */
-    root.addEventListener("click", (e) => {
-      const btn = e.target.closest(".nova-card-btn");
-      if (btn) handleCardAction(btn);
-    });
-
-    /* ==========================================================
-       Conversation Storage
-    ========================================================== */
+    // ============================================================
+    //                   التخزين المحلي
+    // ============================================================
     function saveConversation() {
-      const payload = {
-        ts: Date.now(),
-        history: chatHistory.slice(-20)
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      try {
+        const payload = {
+          ts: Date.now(),
+          history: chatHistory.slice(-25)
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } catch {}
     }
 
-    function restoreConversation() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
+    function restoreConversationIfFresh() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
 
-      const data = JSON.parse(raw);
-      if (!data.ts || !Array.isArray(data.history)) return;
+        const data = JSON.parse(raw);
+        if (!data.ts || !Array.isArray(data.history)) return;
 
-      if (Date.now() - data.ts > 12 * 60 * 60 * 1000) {
-        localStorage.removeItem(STORAGE_KEY);
-        return;
-      }
+        if (Date.now() - data.ts > STORAGE_TTL_MS) {
+          localStorage.removeItem(STORAGE_KEY);
+          return;
+        }
 
-      chatHistory = data.history;
+        chatHistory = data.history;
 
-      for (const msg of chatHistory) {
-        if (msg.role === "user") addUserMessage(msg.content);
-        else addStaticBotMessage(escapeHtml(msg.content).replace(/\n/g, "<br>"));
-      }
+        chatHistory.forEach((msg) => {
+          if (msg.role === "user") {
+            addUserMessage(msg.content);
+          } else if (msg.role === "assistant") {
+            addStaticBotMessage(
+              escapeHtml(msg.content).replace(/\n/g, "<br>")
+            );
+          }
+        });
+      } catch {}
     }
 
-    /* ==========================================================
-       إرسال الرسالة
-    ========================================================== */
-    input.addEventListener("input", () => {
+    // ============================================================
+    //                   إرسال الرسائل
+    // ============================================================
+    function autoResizeTextarea() {
       input.style.height = "auto";
-      input.style.height = Math.min(96, Math.max(36, input.scrollHeight)) + "px";
-    });
+      const newHeight = Math.min(96, Math.max(36, input.scrollHeight));
+      input.style.height = newHeight + "px";
+    }
+    input.addEventListener("input", autoResizeTextarea);
 
     async function handleSend() {
       const text = input.value.trim();
@@ -435,7 +457,10 @@
       saveConversation();
 
       input.value = "";
-      input.style.height = "36px";
+      autoResizeTextarea();
+
+      // لا نغلق الكيبورد في الموبايل
+      setTimeout(() => input.focus({ preventScroll: true }), 30);
 
       sendBtn.disabled = true;
 
@@ -444,49 +469,69 @@
       let result;
       try {
         const apiPromise = callNovaApi(text);
-        const delay = new Promise((r) =>
-          setTimeout(r, 900 + Math.random() * 500)
-        );
-        const [res] = await Promise.all([apiPromise, delay]);
-        result = res;
+        const minDelayMs = 900 + Math.random() * 600;
+        const [apiRes] = await Promise.all([
+          apiPromise,
+          new Promise((r) => setTimeout(r, minDelayMs))
+        ]);
+        result = apiRes;
       } catch {
-        result = { ok: false };
+        result = { ok: false, reply: "" };
+      } finally {
+        sendBtn.disabled = false;
       }
 
-      sendBtn.disabled = false;
+      let replyText = "";
 
-      let reply = result.ok ? result.reply : "✨ واجهة نوفا بوت الآن في وضع التجربة.";
+      if (result && result.ok && result.reply) {
+        replyText = result.reply;
+      } else {
+        replyText =
+          lang === "en"
+            ? "NovaBot is in UI testing mode."
+            : "✨ واجهة نوفا بوت الآن في وضع التجربة. سيتم ربط الدماغ قريباً.";
+      }
 
-      typeReply(reply.replace(/\n/g, "<br>"));
+      // بطاقة المطور
+      if (result && result.actionCard === "developer_identity") {
+        replyText =
+          detectLangFromText(text) === "en"
+            ? "✨ Developer identity card…"
+            : "✨ هذه بطاقة تعريف سريعة بالمطور خلف نوفا بوت.";
+      }
 
-      chatHistory.push({ role: "assistant", content: reply });
+      const replyHtml = replyText.replace(/\n/g, "<br>");
+      typeReplyInCurrentBubble(replyHtml);
+
+      chatHistory.push({ role: "assistant", content: replyText });
       saveConversation();
+
+      if (result && result.actionCard) {
+        showCardByType(result.actionCard, text);
+      }
     }
 
-    sendBtn.addEventListener("click", () => handleSend());
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleSend();
-      }
-    });
-
-    /* ==========================================================
-       فتح / إغلاق الشات
-    ========================================================== */
+    // ============================================================
+    //                   فتح وإغلاق النافذة
+    // ============================================================
     function openChat() {
       if (novaChatOpen) return;
       novaChatOpen = true;
 
       backdrop.classList.add("nova-open");
+      backdrop.setAttribute("aria-hidden", "false");
 
-      if (isMobileViewport()) fabBtn.classList.add("nova-hidden");
+      fabBtn.classList.add("nova-hidden");
+
+      try {
+        history.pushState({ novaBotOpen: true }, "", window.location.href);
+      } catch {}
 
       if (!chatHistory.length) {
         setTimeout(() => {
           startThinkingBubble();
           setTimeout(() => {
-            typeReply(WELCOME_HTML);
+            typeReplyInCurrentBubble(WELCOME_HTML);
             chatHistory.push({
               role: "assistant",
               content: WELCOME_HTML.replace(/<br>/g, "\n")
@@ -499,32 +544,57 @@
       setTimeout(() => input.focus({ preventScroll: true }), 350);
     }
 
-    function closeChat() {
+    function closeChat(options = { fromBack: false }) {
       if (!novaChatOpen) return;
       novaChatOpen = false;
 
       backdrop.classList.remove("nova-open");
-      if (isMobileViewport())
-        setTimeout(() => fabBtn.classList.remove("nova-hidden"), 300);
+      backdrop.setAttribute("aria-hidden", "true");
+
+      setTimeout(() => fabBtn.classList.remove("nova-hidden"), 280);
+
+      if (!options.fromBack) {
+        try {
+          if (history.state?.novaBotOpen) history.back();
+        } catch {}
+      }
     }
 
-    fabBtn.addEventListener("click", () =>
-      novaChatOpen ? closeChat() : openChat()
-    );
+    // ============================================================
+    //                   الأحداث
+    // ============================================================
+    fabBtn.addEventListener("click", () => (novaChatOpen ? closeChat() : openChat()));
     closeBtn.addEventListener("click", () => closeChat());
 
     backdrop.addEventListener("click", (e) => {
       if (e.target === backdrop) closeChat();
     });
 
-    /* زر الرجوع على الموبايل */
-    window.addEventListener("popstate", () => {
-      if (novaChatOpen) closeChat();
+    // نبض الزر العائم
+    setInterval(() => {
+      if (!novaChatOpen) {
+        fabBtn.classList.add("nova-idle");
+        setTimeout(() => fabBtn.classList.remove("nova-idle"), 900);
+      }
+    }, 9000);
+
+    sendBtn.addEventListener("mousedown", (e) => e.preventDefault());
+    sendBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      handleSend();
     });
 
-    /* ==========================================================
-       استعادة الجلسة
-    ========================================================== */
-    restoreConversation();
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    });
+
+    window.addEventListener("popstate", () => {
+      if (novaChatOpen) closeChat({ fromBack: true });
+    });
+
+    restoreConversationIfFresh();
   }
 })();
