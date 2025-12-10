@@ -88,6 +88,43 @@
       return;
     }
 
+/* ============================================================
+   تمدد نافذة المحادثة بعد إغلاق الكيبورد – Mobile/Tablet Fix
+   ============================================================ */
+
+(function enableMobileChatResizeFix() {
+  if (!window.visualViewport) return;
+
+  let lastHeight = window.visualViewport.height;
+
+  window.visualViewport.addEventListener("resize", () => {
+    const currentHeight = window.visualViewport.height;
+
+    // الزيادة المفاجئة في الارتفاع تعني أن الكيبورد أُغلق
+    const keyboardClosed = currentHeight > lastHeight + 60;
+
+    if (keyboardClosed) {
+      try {
+        // استرجاع ارتفاع النافذة الطبيعية
+        const chatShell = root.querySelector(".nova-chat-shell");
+        if (chatShell) {
+          chatShell.style.height = `${window.innerHeight}px`;
+
+          // التمرير للأسفل لعرض آخر الرسائل
+          setTimeout(() => {
+            chatBody.scrollTop = chatBody.scrollHeight;
+          }, 50);
+        }
+      } catch (e) {
+        console.warn("Viewport resize handling error:", e);
+      }
+    }
+
+    lastHeight = currentHeight;
+  });
+})();
+
+     
     // الحالة الداخلية
     let chatHistory = [];
     let soundCount = 0;
