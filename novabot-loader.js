@@ -166,6 +166,49 @@
     let devCardShown = false;
 
     // ============================================================
+    // Layer 2: Session Token (Short-lived) – client side
+    // ============================================================
+    let sessionToken = "";
+    let sessionExpAt = 0;
+
+    function getApiBase(url) {
+      return (url || "").replace(/\/+$/, "");
+    }
+
+    async function ensureSessionToken() {
+      if (!config.API_PRIMARY) return;
+
+      // صالح؟ لا تعيد الطلب
+      if (sessionToken && Date.now() < sessionExpAt - 10_000) return;
+
+      try {
+        const base = getApiBase(config.API_PRIMARY);
+        const res = await fetch(base + "/session", {
+          method: "GET",
+          cache: "no-store"
+        });
+
+        if (!res.ok) {
+          sessionToken = "";
+          sessionExpAt = 0;
+          return;
+        }
+
+        const data = await res.json();
+        if (data && data.ok && data.token) {
+          sessionToken = data.token;
+          sessionExpAt = Date.now() + (data.ttl_ms || 600000);
+        } else {
+          sessionToken = "";
+          sessionExpAt = 0;
+        }
+      } catch {
+        sessionToken = "";
+        sessionExpAt = 0;
+      }
+    }
+
+    // ============================================================
     //                     Helpers
     // ============================================================
     function escapeHtml(str) {
@@ -333,7 +376,6 @@
       scrollToBottom();
 
       setTimeout(() => {
-        // إزالة الإشعار بعد وقت قصير
         if (notice && notice.parentNode) {
           notice.parentNode.removeChild(notice);
         }
@@ -346,10 +388,16 @@
     async function callNovaApi(message) {
       if (!config.API_PRIMARY) return { ok: false, reply: "" };
 
+      // Layer 2: تأكد من وجود Session Token قبل الطلب
+      await ensureSessionToken();
+
       try {
         const res = await fetch(config.API_PRIMARY, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(sessionToken ? { "X-NOVABOT-SESSION": sessionToken } : {})
+          },
           body: JSON.stringify({ message })
         });
 
@@ -383,8 +431,7 @@
       const isSubscribeCard =
         /اشترك|طوّر عملك|طوّر عملك خطوة بخطوة|subscribe/i.test(headerText);
 
-      const isCollabCard =
-        /تعاون|شراكة|collaborat/i.test(headerText);
+      const isCollabCard = /تعاون|شراكة|collaborat/i.test(headerText);
 
       // إعداد حقل الإدخال (ايميل غالباً)
       if (inputEl) {
@@ -440,8 +487,7 @@
             // التمييز بين "صفحة الخدمات" و "صفحة الاشتراك"
             const goServices =
               /الخدمات|services/i.test(btnText) && config.SERVICES_URL;
-            const goSubscribe =
-              !goServices && config.SUBSCRIBE_URL;
+            const goSubscribe = !goServices && config.SUBSCRIBE_URL;
 
             if (goServices) {
               window.open(config.SERVICES_URL, "_blank");
@@ -462,7 +508,7 @@
         }
       }
 
-      // بطاقة التعاون / الشراكات – اعتمادًا على العنوان
+      // بطاقة التعاون / الشراكات
       if (isCollabCard && primaryBtn) {
         primaryBtn.addEventListener("click", (e) => {
           e.preventDefault();
@@ -477,7 +523,9 @@
           const body =
             lang === "en"
               ? `Visitor contact: ${contactVal || "Not provided"}\n\nMessage:`
-              : `بيانات طريقة التواصل:\n${contactVal || "لم يتم كتابة وسيلة تواصل"}\n\nتفاصيل إضافية:`; // mailto body
+              : `بيانات طريقة التواصل:\n${
+                  contactVal || "لم يتم كتابة وسيلة تواصل"
+                }\n\nتفاصيل إضافية:`;
 
           const mailto =
             "mailto:" +
@@ -508,7 +556,6 @@
         if (!lastBot) {
           chatBody.appendChild(cardEl);
           scrollToBottom();
-          // تفعيل منطق البطاقة الجديدة
           initCardBehavior(cardEl);
           return;
         }
@@ -525,7 +572,6 @@
         }
 
         scrollToBottom();
-        // تفعيل منطق البطاقة بعد إدراجها
         initCardBehavior(cardEl);
       };
 
@@ -588,9 +634,7 @@
         case "developer_identity":
           if (devCardShown) return;
           devCardShown = true;
-          card = createDeveloperCard(
-            detectLangFromText(lastUserMessage)
-          );
+          card = createDeveloperCard(detectLangFromText(lastUserMessage));
           break;
         default:
           return;
@@ -660,9 +704,7 @@
           if (msg.role === "user") {
             addUserMessage(msg.content);
           } else if (msg.role === "assistant") {
-            addStaticBotMessage(
-              escapeHtml(msg.content).replace(/\n/g, "<br>")
-            );
+            addStaticBotMessage(escapeHtml(msg.content).replace(/\n/g, "<br>"));
           }
         });
       } catch {}
@@ -773,6 +815,9 @@
           }, 900);
         }, 400);
       }
+
+      // prefetch session token عند الفتح (اختياري لكن يحسن أول رسالة)
+      ensureSessionToken();
 
       setTimeout(() => input.focus({ preventScroll: true }), 350);
     }
