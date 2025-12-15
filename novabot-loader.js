@@ -11,6 +11,141 @@
   const API_URL = scriptEl.getAttribute("data-novabot-api") || "";
   const LOCALE = scriptEl.getAttribute("data-novabot-locale") || "ar";
 
+  // ===========================
+  // Layer 4 (Client): Turnstile (Invisible)
+  // ===========================
+  const TURNSTILE_SITE_KEY =
+    scriptEl.getAttribute("data-novabot-turnstile-sitekey") || "";
+
+  let turnstileReady = false;
+  let turnstileWidgetId = null;
+  let lastTsToken = "";
+  let lastTsAt = 0;
+
+  const TS_CACHE_MS = 55 * 1000; // 55s cache
+  const TS_EXEC_TIMEOUT_MS = 4500;
+  const TS_READY_TIMEOUT_MS = 4000;
+
+  const tsWaiters = [];
+
+  function loadTurnstile() {
+    if (!TURNSTILE_SITE_KEY) return;
+
+    if (window.turnstile) {
+      initTurnstile();
+      return;
+    }
+
+    if (document.querySelector('script[data-novabot-turnstile="1"]')) return;
+
+    const s = document.createElement("script");
+    s.src =
+      "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    s.async = true;
+    s.defer = true;
+    s.setAttribute("data-novabot-turnstile", "1");
+    s.onload = initTurnstile;
+    document.head.appendChild(s);
+  }
+
+  function initTurnstile() {
+    if (!TURNSTILE_SITE_KEY) return;
+    if (!window.turnstile || turnstileReady) return;
+
+    const container = document.createElement("div");
+    container.style.display = "none";
+    document.body.appendChild(container);
+
+    turnstileWidgetId = window.turnstile.render(container, {
+      sitekey: TURNSTILE_SITE_KEY,
+      size: "invisible",
+      callback: function (token) {
+        lastTsToken = String(token || "");
+        lastTsAt = Date.now();
+
+        if (tsWaiters.length) {
+          const q = tsWaiters.slice();
+          tsWaiters.length = 0;
+          q.forEach((resolve) => {
+            try {
+              resolve(lastTsToken);
+            } catch (e) {}
+          });
+        }
+      },
+      "error-callback": function () {
+        if (tsWaiters.length) {
+          const q = tsWaiters.slice();
+          tsWaiters.length = 0;
+          q.forEach((resolve) => {
+            try {
+              resolve("");
+            } catch (e) {}
+          });
+        }
+      },
+      "expired-callback": function () {
+        lastTsToken = "";
+        lastTsAt = 0;
+      }
+    });
+
+    turnstileReady = true;
+  }
+
+  function waitForTurnstileReady(timeoutMs = TS_READY_TIMEOUT_MS) {
+    return new Promise((resolve) => {
+      if (!TURNSTILE_SITE_KEY) return resolve(false);
+      if (turnstileReady && window.turnstile && turnstileWidgetId !== null)
+        return resolve(true);
+
+      const start = Date.now();
+      const t = setInterval(() => {
+        if (turnstileReady && window.turnstile && turnstileWidgetId !== null) {
+          clearInterval(t);
+          resolve(true);
+        } else if (Date.now() - start > timeoutMs) {
+          clearInterval(t);
+          resolve(false);
+        }
+      }, 50);
+    });
+  }
+
+  async function getTurnstileToken() {
+    if (!TURNSTILE_SITE_KEY) return "";
+
+    if (lastTsToken && Date.now() - lastTsAt < TS_CACHE_MS) return lastTsToken;
+
+    const ok = await waitForTurnstileReady(TS_READY_TIMEOUT_MS);
+    if (!ok || !window.turnstile || turnstileWidgetId === null) return "";
+
+    return new Promise((resolve) => {
+      tsWaiters.push(resolve);
+
+      try {
+        window.turnstile.execute(turnstileWidgetId);
+      } catch {
+        const q = tsWaiters.slice();
+        tsWaiters.length = 0;
+        q.forEach((r) => {
+          try {
+            r("");
+          } catch (e) {}
+        });
+      }
+
+      setTimeout(() => {
+        const idx = tsWaiters.indexOf(resolve);
+        if (idx !== -1) tsWaiters.splice(idx, 1);
+        resolve(lastTsToken || "");
+      }, TS_EXEC_TIMEOUT_MS);
+    });
+  }
+
+  // تحميل Turnstile مبكرًا
+  loadTurnstile();
+
   // إنشاء حاوية للشادو
   const host = document.createElement("div");
   host.id = "novabot-shadow-host";
@@ -397,6 +532,48 @@
           headers: {
             "Content-Type": "application/json",
             ...(sessionToken ? { "X-NOVABOT-SESSION": sessionToken } : {})
+          },
+          body: JSON.stringify({ message })
+        });
+
+        if (!res.ok) return { ok: false, reply: "" };
+
+        const data = await res.json();
+        return {
+          ok: data.ok,
+          reply: data.reply,
+          actionCard: data.actionCard || null
+        };
+      } catch {
+        return { ok: false, reply: "" };
+      }
+    }
+
+    // ============================================================
+    //                     API CALL (Override) — Layer 4 Turnstile
+    // ============================================================
+    async function callNovaApi(message) {
+      if (!config.API_PRIMARY) return { ok: false, reply: "" };
+
+      // Layer 2: تأكد من وجود Session Token قبل الطلب
+      await ensureSessionToken();
+
+      // Layer 4: Turnstile token قبل الطلب
+      // (بهدوء: إذا غير متاح أو لم يوجد Site Key سيتم إرسال الطلب بدون التوكن)
+      let tsToken = "";
+      try {
+        tsToken = await getTurnstileToken();
+      } catch {
+        tsToken = "";
+      }
+
+      try {
+        const res = await fetch(config.API_PRIMARY, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(sessionToken ? { "X-NOVABOT-SESSION": sessionToken } : {}),
+            ...(tsToken ? { "X-NOVABOT-TS-TOKEN": tsToken } : {})
           },
           body: JSON.stringify({ message })
         });
