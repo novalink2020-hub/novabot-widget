@@ -1181,7 +1181,7 @@ case "collaboration":
         replyText =
           detectLangFromText(text) === "en"
             ? "✨ Developer identity card…"
-            : "✨ هذه بطاقة تعريف سريعة بالمطور خلف نوفا بوت.";
+            : "✨ هذه بطاقة تعريف سريعة بالمطوّر خلف نوفا بوت.";
       }
 
       const replyHtml = replyText.replace(/\n/g, "<br>");
