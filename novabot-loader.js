@@ -178,6 +178,234 @@
       console.error("NovaBot loader error:", err);
     });
 
+// ================================
+// NovaBot Loader – Phase 1
+// Cards Stabilization + Autofill
+// ================================
+
+(function () {
+  const NOVA_CONTACT_KEY = "novabot_user_contact";
+
+  /* ======================================
+     Helpers – Contact Cache
+  ====================================== */
+
+  function saveUserContact(val) {
+    if (!val || typeof val !== "string") return;
+    const clean = val.trim();
+    if (clean.length < 4) return;
+    try {
+      localStorage.setItem(NOVA_CONTACT_KEY, clean);
+    } catch (e) {}
+  }
+
+  function getUserContact() {
+    try {
+      return localStorage.getItem(NOVA_CONTACT_KEY) || "";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function attachAutofill(inputEl) {
+    if (!inputEl) return;
+
+    const tryFill = () => {
+      if (inputEl.value) return;
+      const cached = getUserContact();
+      if (cached) {
+        inputEl.value = cached;
+      }
+    };
+
+    inputEl.addEventListener("focus", tryFill);
+    inputEl.addEventListener("mousedown", tryFill);
+    inputEl.addEventListener("touchstart", tryFill);
+  }
+
+  /* ======================================
+     Cards
+  ====================================== */
+
+  function createBusinessCard() {
+    const card = document.createElement("div");
+    card.className = "nova-card";
+
+    card.innerHTML = `
+      <div class="nova-card-header">📈 طوّر عملك بهدوء</div>
+      <div class="nova-card-text">
+        نوفا لينك تشاركك خلاصة ما يهم رائد الأعمال فعلًا:
+        أدوات، أفكار، وتجارب عملية في الذكاء الاصطناعي للأعمال،
+        بدون رسائل تسويقية مزعجة.
+      </div>
+
+      <input
+        type="text"
+        class="nova-card-input"
+        placeholder="بريدك الإلكتروني"
+      />
+
+      <div class="nova-card-actions">
+        <button class="nova-card-btn nova-card-btn-primary">
+          اشترك الآن
+        </button>
+        <button
+          class="nova-card-btn nova-card-btn-secondary"
+          type="button"
+        >
+          زيارة صفحة الخدمات
+        </button>
+      </div>
+    `;
+
+    const input = card.querySelector(".nova-card-input");
+    const primaryBtn = card.querySelector(".nova-card-btn-primary");
+    const secondaryBtn = card.querySelector(".nova-card-btn-secondary");
+
+    attachAutofill(input);
+
+    primaryBtn.addEventListener("click", () => {
+      const val = (input.value || "").trim();
+      if (!val) {
+        alert("يرجى إدخال بريدك الإلكتروني.");
+        input.focus();
+        return;
+      }
+      saveUserContact(val);
+      primaryBtn.textContent = "تم الاشتراك ✓";
+      primaryBtn.disabled = true;
+    });
+
+    secondaryBtn.addEventListener("click", () => {
+      window.open("https://novalink-ai.com/services-khdmat-nwfa-lynk", "_blank");
+    });
+
+    return card;
+  }
+
+  function createBotLeadCard() {
+    const card = document.createElement("div");
+    card.className = "nova-card";
+
+    card.innerHTML = `
+      <div class="nova-card-header">🤖 بوت دردشة لعملك</div>
+      <div class="nova-card-text">
+        كثير من المشاريع تخسر عملاء لأن الرد تأخر أو لم يكن مناسبًا.
+        نوفا بوت يمكن تخصيصه لشرح خدماتك، الرد على الأسئلة المتكررة،
+        وتوجيه العميل للخطوة الصحيحة بدل أن يضيعه.
+      </div>
+
+      <input
+        type="text"
+        class="nova-card-input"
+        placeholder="بريدك الإلكتروني أو رقم واتساب"
+      />
+
+      <div class="nova-card-actions">
+        <button class="nova-card-btn nova-card-btn-primary">
+          احجز استشارة قصيرة
+        </button>
+      </div>
+    `;
+
+    const input = card.querySelector(".nova-card-input");
+    const btn = card.querySelector(".nova-card-btn-primary");
+
+    attachAutofill(input);
+
+    btn.addEventListener("click", () => {
+      const contact = (input.value || "").trim();
+      if (!contact) {
+        alert("يرجى إدخال وسيلة تواصل.");
+        input.focus();
+        return;
+      }
+
+      saveUserContact(contact);
+
+      const subject = encodeURIComponent("طلب استشارة – بوت دردشة لعملي");
+      const body = encodeURIComponent(
+        `مرحبًا فريق نوفا لينك،
+
+لدي مشروع وأفكّر في استخدام بوت دردشة لتخفيف ضغط الاستفسارات
+وتحسين تجربة العملاء.
+
+وسيلة التواصل:
+${contact}
+
+نوع النشاط:
+الجمهور المستهدف:
+أكثر تحدٍ أواجهه حاليًا:
+
+تم إرسال هذه الرسالة عبر نوفا بوت.`
+      );
+
+      window.location.href =
+        "mailto:contact@novalink-ai.com?subject=" +
+        subject +
+        "&body=" +
+        body;
+    });
+
+    return card;
+  }
+
+  function createCollaborationCard() {
+    const card = document.createElement("div");
+    card.className = "nova-card";
+
+    card.innerHTML = `
+      <div class="nova-card-header">🤝 تعاون وشراكات</div>
+      <div class="nova-card-text">
+        نرحّب بالتعاونات الجادة المرتبطة بالذكاء الاصطناعي للأعمال:
+        محتوى، شراكات، ورش عمل، أو مشاريع مشتركة ذات قيمة حقيقية.
+      </div>
+
+      <div class="nova-card-actions">
+        <button class="nova-card-btn nova-card-btn-primary">
+          تواصل عبر البريد
+        </button>
+      </div>
+    `;
+
+    const btn = card.querySelector(".nova-card-btn-primary");
+
+    btn.addEventListener("click", () => {
+      const subject = encodeURIComponent("مقترح تعاون مع نوفا لينك");
+      const body = encodeURIComponent(
+        `مرحبًا فريق نوفا لينك،
+
+أود مناقشة فكرة تعاون معكم.
+
+نوع التعاون:
+الجمهور المستهدف:
+القيمة المتوقعة للطرفين:
+
+تم إرسال هذه الرسالة عبر نوفا بوت.`
+      );
+
+      window.location.href =
+        "mailto:contact@novalink-ai.com?subject=" +
+        subject +
+        "&body=" +
+        body;
+    });
+
+    return card;
+  }
+
+  /* ======================================
+     Export to existing switch
+  ====================================== */
+
+  window.NovaBotCards = {
+    createBusinessCard,
+    createBotLeadCard,
+    createCollaborationCard
+  };
+})();
+
+   
   // ============================================================
   //                      NovaBot Logic
   // ============================================================
