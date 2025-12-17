@@ -22,7 +22,7 @@
   let lastTsToken = "";
   let lastTsAt = 0;
 
-  const TS_CACHE_MS = 55 * 1000; // 55s cache
+  const TS_CACHE_MS = 55 * 1000;
   const TS_EXEC_TIMEOUT_MS = 4500;
   const TS_READY_TIMEOUT_MS = 4000;
 
@@ -69,7 +69,7 @@
           q.forEach((resolve) => {
             try {
               resolve(lastTsToken);
-            } catch (e) {}
+            } catch {}
           });
         }
       },
@@ -80,7 +80,7 @@
           q.forEach((resolve) => {
             try {
               resolve("");
-            } catch (e) {}
+            } catch {}
           });
         }
       },
@@ -93,71 +93,48 @@
     turnstileReady = true;
   }
 
-  function waitForTurnstileReady(timeoutMs = TS_READY_TIMEOUT_MS) {
-    return new Promise((resolve) => {
-      if (!TURNSTILE_SITE_KEY) return resolve(false);
-      if (turnstileReady && window.turnstile && turnstileWidgetId !== null)
-        return resolve(true);
-
-      const start = Date.now();
-      const t = setInterval(() => {
-        if (turnstileReady && window.turnstile && turnstileWidgetId !== null) {
-          clearInterval(t);
-          resolve(true);
-        } else if (Date.now() - start > timeoutMs) {
-          clearInterval(t);
-          resolve(false);
-        }
-      }, 50);
-    });
-  }
-
   async function getTurnstileToken() {
     if (!TURNSTILE_SITE_KEY) return "";
 
     if (lastTsToken && Date.now() - lastTsAt < TS_CACHE_MS) return lastTsToken;
 
-    const ok = await waitForTurnstileReady(TS_READY_TIMEOUT_MS);
-    if (!ok || !window.turnstile || turnstileWidgetId === null) return "";
+    if (!turnstileReady || !window.turnstile || turnstileWidgetId === null)
+      return "";
 
     return new Promise((resolve) => {
       tsWaiters.push(resolve);
-
       try {
         window.turnstile.execute(turnstileWidgetId);
       } catch {
-        const q = tsWaiters.slice();
-        tsWaiters.length = 0;
-        q.forEach((r) => {
-          try {
-            r("");
-          } catch (e) {}
-        });
+        resolve("");
       }
 
       setTimeout(() => {
-        const idx = tsWaiters.indexOf(resolve);
-        if (idx !== -1) tsWaiters.splice(idx, 1);
         resolve(lastTsToken || "");
       }, TS_EXEC_TIMEOUT_MS);
     });
   }
 
-  // تحميل Turnstile مبكرًا
   loadTurnstile();
 
-  // إنشاء حاوية للشادو
+  // ============================================================
+  // FIX: Shadow Host Pointer Events Isolation (Production Fix)
+  // ============================================================
+
   const host = document.createElement("div");
   host.id = "novabot-shadow-host";
   host.style.position = "fixed";
   host.style.inset = "0";
   host.style.zIndex = "9999";
-  host.style.pointerEvents = "auto"; // مهم لعمل الضغط داخل الواجهة
+
+  // 🔒 Critical Fix:
+  // Host does NOT capture pointer events
+  host.style.pointerEvents = "none";
+
   document.body.appendChild(host);
 
   const shadow = host.attachShadow({ mode: "open" });
 
-  // مسار الملفات ui.css و ui.html
   const baseUrl = scriptEl.src.replace(/[^\/]+$/, "");
   const cssUrl = baseUrl + "ui.css";
   const htmlUrl = baseUrl + "ui.html";
@@ -167,7 +144,14 @@
     fetch(htmlUrl).then((r) => r.text())
   ])
     .then(([cssText, htmlText]) => {
-      shadow.innerHTML = `<style>${cssText}</style>${htmlText}`;
+      shadow.innerHTML = `
+        <style>
+          :host { pointer-events: none; }
+          * { pointer-events: auto; }
+          ${cssText}
+        </style>
+        ${htmlText}
+      `;
       initNovaBot(shadow, { apiUrl: API_URL, locale: LOCALE });
     })
     .catch((err) => {
@@ -182,22 +166,28 @@
       BRAND_NAME: "نوفا لينك",
       PRIMARY_COLOR: "#1b577c",
       ACCENT_COLOR: "#fe930e",
-
       API_PRIMARY: options.apiUrl || "",
       API_FALLBACK: options.apiUrl || "",
-
       CHANNEL: "web",
       BUSINESS_TYPE: "blog",
       LOCALE: options.locale || "ar",
-
       SOUND_URL:
         "https://assets.zyrosite.com/YD0w46zZ5ZIrwlP8/new-notification-3-398649-RwIqiPPdJUta0dpV.mp3",
-
       SUBSCRIBE_URL: "https://novalink-ai.com/ashtrk-alan",
       SERVICES_URL: "https://novalink-ai.com/services-khdmat-nwfa-lynk",
       FEEDBACK_API: "",
       CONTACT_EMAIL: "contact@novalink-ai.com"
     };
+
+    const fabBtn = root.getElementById("novaFabBtn");
+    const backdrop = root.getElementById("novaBackdrop");
+
+    // ✅ Explicitly allow interaction only for Nova UI
+    if (fabBtn) fabBtn.style.pointerEvents = "auto";
+    if (backdrop) backdrop.style.pointerEvents = "auto";
+  }
+})();
+
 
     const lang = config.LOCALE === "en" ? "en" : "ar";
 
