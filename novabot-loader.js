@@ -432,6 +432,47 @@ ${contact}
     };
 
     const lang = config.LOCALE === "en" ? "en" : "ar";
+     const CARD_PREFACE_TEXT = {
+  subscribe: {
+    ar: `📬 يسعدني حماسك للمتابعة  
+بدل التشتت بين عشرات المصادر،  
+يمكنك أن تصلك الخلاصة مباشرة — بهدوء، وبدون إزعاج.`,
+  },
+
+  business_subscribe: {
+    ar: `👨‍💻 كثير من روّاد الأعمال يشعرون أن الذكاء الاصطناعي “مهم”…  
+لكنهم لا يجدون وقتًا لتجربة كل أداة أو متابعة كل تحديث.  
+هنا نحاول اختصار الطريق، لا تعقيده.`,
+  },
+
+  bot_lead: {
+    ar: `🧠 أغلب المشاريع لا تخسر بسبب ضعف المنتج،  
+بل بسبب تأخر الرد، أو غياب الوضوح في اللحظة الحاسمة.`,
+  },
+
+  collaboration: {
+    ar: `🤝 إن كنت تفكّر بتعاون، شراكة، أو فكرة مشتركة ذات قيمة حقيقية،  
+فنحن نفضّل الحديث الهادئ والواضح بدل الرسائل العامة.`,
+  },
+
+  developer_identity: {
+    ar: `✨ أحيانًا من المهم أن تعرف من يقف خلف الأداة التي تستخدمها،  
+لا بدافع الفضول، بل لبناء الثقة.`,
+    en: `✨ Sometimes, knowing who stands behind the tool matters —  
+not out of curiosity, but to build trust.`,
+  }
+};
+     
+function getCardPreface(cardType, userText) {
+  const entry = CARD_PREFACE_TEXT[cardType];
+  if (!entry) return "";
+
+  if (entry.en && detectLangFromText(userText) === "en") {
+    return entry.en;
+  }
+  return entry.ar || "";
+}
+
 
     const WELCOME_HTML =
       lang === "en"
@@ -1190,9 +1231,20 @@ case "collaboration":
       chatHistory.push({ role: "assistant", content: replyText });
       saveConversation();
 
-      if (result && result.actionCard) {
-        showCardByType(result.actionCard, text);
-      }
+if (result && result.actionCard) {
+  const preface = getCardPreface(result.actionCard, text);
+
+  if (preface) {
+    // نكتب النص التمهيدي أولًا
+    typeReplyInCurrentBubble(
+      replyHtml + "<br><br>" + preface.replace(/\n/g, "<br>")
+    );
+  }
+
+  // البطاقة تظهر بعد انتهاء الكتابة تلقائيًا
+  showCardByType(result.actionCard, text);
+}
+
     }
 
     // ============================================================
