@@ -1232,20 +1232,12 @@ case "collaboration":
       saveConversation();
 
 if (result && result.actionCard) {
-  const preface = getCardPreface(result.actionCard, text);
-
-  if (preface) {
-    // نكتب النص التمهيدي أولًا
-    typeReplyInCurrentBubble(
-      replyHtml + "<br><br>" + preface.replace(/\n/g, "<br>")
-    );
-  }
-
-  // البطاقة تظهر بعد انتهاء الكتابة تلقائيًا
-  showCardByType(result.actionCard, text);
+  // البطاقة تُعرض فقط بعد انتهاء مؤثر الكتابة
+  pendingCardCallbacks.push(() => {
+    showCardByType(result.actionCard, text);
+  });
 }
 
-    }
 
     // ============================================================
     //                   فتح وإغلاق النافذة
