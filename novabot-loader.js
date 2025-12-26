@@ -701,6 +701,7 @@ NovaUIState.isTyping = true;
               cb();
             } catch (e) {}
           }
+           NovaUIState.lastInteractionAt = Date.now();
         }
       }, speed);
     }
