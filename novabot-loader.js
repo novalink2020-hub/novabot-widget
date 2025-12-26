@@ -7,6 +7,17 @@
 (function () {
   const scriptEl = document.currentScript;
   if (!scriptEl) return;
+// ==============================
+// NovaBot UI State (Single Source of Truth)
+// ==============================
+const NovaUIState = {
+  isOpen: false,
+  isSending: false,
+  isTyping: false,
+  hasSession: false,
+  sessionRestored: false,
+  lastInteractionAt: null,
+};
 
   const API_URL = scriptEl.getAttribute("data-novabot-api") || "";
   const LOCALE = scriptEl.getAttribute("data-novabot-locale") || "ar";
