@@ -1182,21 +1182,27 @@ NovaUIState.hasSession = true;
 function autoResizeTextarea() {
   input.style.height = "auto";
 
+  const isDesktop = !isMobileViewport();
+
   const lineHeight = 24; // متوافق مع Tajawal
+  const minLines = isDesktop ? 2 : 1; // 👈 الفرق الوحيد
   const maxLines = 4;
+
+  const minHeight = lineHeight * minLines;
   const maxHeight = lineHeight * maxLines;
 
   const newHeight = Math.min(
     maxHeight,
-    Math.max(lineHeight, input.scrollHeight)
+    Math.max(minHeight, input.scrollHeight)
   );
 
   input.style.height = newHeight + "px";
 
-  // إظهار السكرول فقط بعد 4 أسطر
+  // إظهار السكرول فقط بعد تجاوز 4 أسطر
   input.style.overflowY =
     input.scrollHeight > maxHeight ? "auto" : "hidden";
 }
+
 
 
 
