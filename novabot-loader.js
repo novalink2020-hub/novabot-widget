@@ -1183,23 +1183,41 @@ function autoResizeTextarea() {
   // ❗ فقط موبايل وتابلت
   if (!isMobileViewport()) return;
 
-  // سطر واحد افتراضي
+  // إعادة الضبط قبل الحساب
   input.style.height = "auto";
 
-  // حساب الارتفاع الحقيقي
-  const lineHeight = 24; // سطر منطقي
+  const lineHeight = 24; // ارتفاع سطر واحد
   const maxLines = 4;
   const maxHeight = lineHeight * maxLines;
 
+  const scrollH = input.scrollHeight;
   const newHeight = Math.min(
     maxHeight,
-    Math.max(lineHeight, input.scrollHeight)
+    Math.max(lineHeight, scrollH)
   );
 
   input.style.height = newHeight + "px";
+
+  // إظهار الـ scrollbar فقط عند تجاوز الحد الأقصى
+  if (scrollH > maxHeight) {
+    input.style.overflowY = "auto";
+  } else {
+    input.style.overflowY = "hidden";
+  }
 }
 
+
     input.addEventListener("input", autoResizeTextarea);
+     // استرجاع سلوك الديسكتوب الطبيعي عند الخروج من الموبايل
+input.addEventListener("blur", () => {
+  if (isMobileViewport()) return;
+
+  input.style.height = "";
+  input.style.minHeight = "";
+  input.style.overflowY = "";
+  input.rows = 2; // السلوك الأصلي للديسكتوب
+});
+
 // تثبيت سطر واحد فعلي عند الفتح (موبايل/تابلت فقط)
 input.addEventListener("focus", () => {
   if (!isMobileViewport()) return;
