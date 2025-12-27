@@ -248,7 +248,7 @@
 /* ============ جسم المحادثة ============ */
 .nova-chat-body {
   flex: 1;
-  padding: 10px 13px 90px 13px;
+  padding: 10px 13px 14px 13px;
   overflow-y: auto;
   direction: rtl;
   background: linear-gradient(
