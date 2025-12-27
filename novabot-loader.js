@@ -491,14 +491,13 @@ const SEND_COOLDOWN_MS = 800; // منع الإرسال المتكرر السري
            -------------------------------------------------------- */
         if (keyboardOpened) {
           try {
-            // العودة إلى الارتفاع الديناميكي الأصلي
-            chatShell.style.height = originalHeight;
+           // لا تغيّر height الأساسي
+chatShell.style.maxHeight = `${currentHeight}px`;
 
-            // ضغط نافذة المحادثة تلقائياً لعدم خروج الفوتر خارج الشاشة
-            chatShell.style.maxHeight = `${currentHeight - 20}px`;
+// اجعل الفقاعات تأخذ المساحة المتبقية فقط
+chatBody.style.maxHeight = `${currentHeight - 64}px`;
+chatBody.style.overflowY = "auto";
 
-            // تعديل ارتفاع البودي مع الضغط
-            chatBody.style.maxHeight = `${currentHeight - 120}px`;
           } catch (e) {
             console.warn("Keyboard open error:", e);
           }
