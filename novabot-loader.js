@@ -488,7 +488,6 @@ const __kbOriginal = {
 let __kbApplied = false;
 
       let lastHeight = window.visualViewport.height;
- let originalHeight = chatShell.getBoundingClientRect().height; // للحفاظ على الارتفاع الأصلي
 
       window.visualViewport.addEventListener("resize", () => {
         const currentHeight = window.visualViewport.height;
