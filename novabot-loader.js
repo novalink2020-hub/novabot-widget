@@ -1198,7 +1198,6 @@ function autoResizeTextarea() {
     input.scrollHeight > maxHeight ? "auto" : "hidden";
 }
 
-}
 
 
     input.addEventListener("input", autoResizeTextarea);
