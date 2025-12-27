@@ -606,7 +606,22 @@ chatShell.style.maxHeight = `${vv.height + vv.offsetTop}px`;
 
     // الحالة الداخلية
     let chatHistory = [];
-    let soundCount = 0;
+     const SOUND_SESSION_KEY = "novabot_sound_count";
+
+function getSoundCount() {
+  try {
+    return Number(sessionStorage.getItem(SOUND_SESSION_KEY) || 0);
+  } catch {
+    return 0;
+  }
+}
+
+function setSoundCount(val) {
+  try {
+    sessionStorage.setItem(SOUND_SESSION_KEY, String(val));
+  } catch {}
+}
+
     let novaChatOpen = false;
      // ============================================================
 // Focus Recovery – UX polish (Mobile & Desktop aware)
