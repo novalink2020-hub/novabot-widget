@@ -724,17 +724,19 @@ document.addEventListener("visibilitychange", () => {
     function scrollToBottom() {
       chatBody.scrollTop = chatBody.scrollHeight;
     }
+     function playNovaSound() {
+  if (!config.SOUND_URL) return;
 
-    function playNovaSound() {
-      if (!config.SOUND_URL) return;
-      if (soundCount >= 3) return;
+  let count = getSoundCount();
+  if (count >= 3) return;
 
-      try {
-        const a = new Audio(config.SOUND_URL);
-        a.play().catch(() => {});
-        soundCount++;
-      } catch (e) {}
-    }
+  try {
+    const a = new Audio(config.SOUND_URL);
+    a.play().catch(() => {});
+    setSoundCount(count + 1);
+  } catch (e) {}
+}
+
 
     function clearTypingState() {
       if (typingIntervalId) {
