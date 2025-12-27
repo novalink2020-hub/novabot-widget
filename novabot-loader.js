@@ -508,17 +508,10 @@ chatBody.style.overflowY = "auto";
            -------------------------------------------------------- */
         if (keyboardClosed) {
           try {
-            // إعادة النافذة إلى الحجم الكامل
-            chatShell.style.height = `${window.innerHeight}px`;
-            chatShell.style.maxHeight = `${window.innerHeight}px`;
-
-            // إلغاء أي ضغط تم تطبيقه
-            chatBody.style.maxHeight = "";
-
-            // تمرير لأسفل آخر الرسائل
-            setTimeout(() => {
-              chatBody.scrollTop = chatBody.scrollHeight;
-            }, 60);
+    // إزالة أي قيود مؤقتة فُرضت بسبب فتح الكيبورد فقط
+    chatShell.style.maxHeight = "";
+    chatBody.style.maxHeight = "";
+    chatBody.style.overflowY = "";
           } catch (e) {
             console.warn("Keyboard close error:", e);
           }
