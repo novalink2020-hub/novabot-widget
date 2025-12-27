@@ -500,28 +500,16 @@ let __kbApplied = false;
            -------------------------------------------------------- */
         if (keyboardOpened) {
           try {
-              const vv = window.visualViewport;
+                 // المسافة الفعلية بين أعلى الشاشة وسقف الكيبورد
+    const keyboardTop =
+      window.visualViewport.offsetTop + window.visualViewport.height;
 
-    // مقدار ارتفاع الكيبورد/الجزء المقطوع من أسفل الشاشة
-    const bottomGap = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+    // الفوتر يلتصق تمامًا بسقف الكيبورد
+    chatShell.style.maxHeight = `${keyboardTop}px`;
 
-    // نرفع الشيل للأعلى بحيث يصير الفوتر ملاصق لسقف الكيبورد
-    chatShell.style.bottom = `${bottomGap}px`;
-
-    // نقيّد فقط maxHeight (بدون لمس height الأساسي)
-    chatShell.style.maxHeight = `${vv.height}px`;
-
-    // الفقاعات: نعطيها سكرول، ونخليها ضمن المساحة المتاحة
-    // (الرقم 64 مجرد هامش أمان بسيط — إذا عندك هيدر/فوتر أكبر نعدّله لاحقًا بدقة)
-    chatBody.style.maxHeight = `${Math.max(120, vv.height - 64)}px`;
+    // جسم المحادثة يأخذ المساحة المتبقية فقط
+    chatBody.style.maxHeight = `${keyboardTop - chatShell.offsetTop - 64}px`;
     chatBody.style.overflowY = "auto";
-
-    __kbApplied = true;
-
-    // تثبيت آخر رسالة فوق حقل الكتابة
-    setTimeout(() => {
-      chatBody.scrollTop = chatBody.scrollHeight;
-    }, 0);
 
           } catch (e) {
             console.warn("Keyboard open error:", e);
