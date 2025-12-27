@@ -477,6 +477,16 @@ const SEND_COOLDOWN_MS = 800; // منع الإرسال المتكرر السري
       const chatShell = root.querySelector(".nova-chat-shell");
       if (!chatShell) return;
 
+       // Snapshot للقيم الأصلية — حتى لا يتغيّر شيء عند إغلاق الكيبورد
+const __kbOriginal = {
+  shellMaxHeight: chatShell.style.maxHeight || "",
+  shellBottom: chatShell.style.bottom || "",
+  bodyMaxHeight: chatBody.style.maxHeight || "",
+  bodyOverflowY: chatBody.style.overflowY || ""
+};
+
+let __kbApplied = false;
+
       let lastHeight = window.visualViewport.height;
  let originalHeight = chatShell.getBoundingClientRect().height; // للحفاظ على الارتفاع الأصلي
 
@@ -491,12 +501,28 @@ const SEND_COOLDOWN_MS = 800; // منع الإرسال المتكرر السري
            -------------------------------------------------------- */
         if (keyboardOpened) {
           try {
-           // لا تغيّر height الأساسي
-chatShell.style.maxHeight = `${currentHeight}px`;
+              const vv = window.visualViewport;
 
-// اجعل الفقاعات تأخذ المساحة المتبقية فقط
-chatBody.style.maxHeight = `${currentHeight - 64}px`;
-chatBody.style.overflowY = "auto";
+    // مقدار ارتفاع الكيبورد/الجزء المقطوع من أسفل الشاشة
+    const bottomGap = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+
+    // نرفع الشيل للأعلى بحيث يصير الفوتر ملاصق لسقف الكيبورد
+    chatShell.style.bottom = `${bottomGap}px`;
+
+    // نقيّد فقط maxHeight (بدون لمس height الأساسي)
+    chatShell.style.maxHeight = `${vv.height}px`;
+
+    // الفقاعات: نعطيها سكرول، ونخليها ضمن المساحة المتاحة
+    // (الرقم 64 مجرد هامش أمان بسيط — إذا عندك هيدر/فوتر أكبر نعدّله لاحقًا بدقة)
+    chatBody.style.maxHeight = `${Math.max(120, vv.height - 64)}px`;
+    chatBody.style.overflowY = "auto";
+
+    __kbApplied = true;
+
+    // تثبيت آخر رسالة فوق حقل الكتابة
+    setTimeout(() => {
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }, 0);
 
           } catch (e) {
             console.warn("Keyboard open error:", e);
@@ -508,6 +534,14 @@ chatBody.style.overflowY = "auto";
            -------------------------------------------------------- */
         if (keyboardClosed) {
           try {
+             if (__kbApplied) {
+  chatShell.style.maxHeight = __kbOriginal.shellMaxHeight;
+  chatShell.style.bottom = __kbOriginal.shellBottom;
+  chatBody.style.maxHeight = __kbOriginal.bodyMaxHeight;
+  chatBody.style.overflowY = __kbOriginal.bodyOverflowY;
+  __kbApplied = false;
+}
+
     // إعادة النافذة إلى الحجم الكامل
     chatShell.style.height = `${window.innerHeight}px`;
     chatShell.style.maxHeight = `${window.innerHeight}px`;
