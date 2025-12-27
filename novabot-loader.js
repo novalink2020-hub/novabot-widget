@@ -1200,7 +1200,16 @@ function autoResizeTextarea() {
 }
 
     input.addEventListener("input", autoResizeTextarea);
+// تثبيت سطر واحد فعلي عند الفتح (موبايل/تابلت فقط)
+input.addEventListener("focus", () => {
+  if (!isMobileViewport()) return;
 
+  input.style.minHeight = "32px";
+  input.style.height = "32px";
+  input.rows = 1;
+});
+
+     
 async function handleSend() {
   const text = input.value.trim();
    const now = Date.now();
