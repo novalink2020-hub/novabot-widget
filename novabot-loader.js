@@ -1038,6 +1038,10 @@ NovaUIState.isTyping = true;
     // ============================================================
     // تفعيل منطق البطاقات (اشترك / صفحة الاشتراك / خدمات / تعاون)
     function initCardBehavior(cardEl) {
+       // 🔒 Prevent duplicate bindings (SaaS-safe guard)
+if (cardEl.dataset.novaBound === "1") return;
+cardEl.dataset.novaBound = "1";
+
       if (!cardEl) return;
 
       const headerEl = cardEl.querySelector(".nova-card-header");
