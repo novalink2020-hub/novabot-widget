@@ -1088,7 +1088,7 @@ NovaUIState.isTyping = true;
       // بطاقة الاشتراك / الأعمال
       if (isSubscribeCard) {
         if (primaryBtn && inputEl) {
-primaryBtn.addEventListener("click", (e) => {
+           primaryBtn.addEventListener("click", async (e) => {
   e.preventDefault();
 
   const val = (inputEl.value || "").trim();
@@ -1102,45 +1102,36 @@ primaryBtn.addEventListener("click", (e) => {
     return;
   }
 
-  // حفظ الإيميل محليًا
   try {
     if (val.includes("@")) {
       localStorage.setItem(EMAIL_STORAGE_KEY, val);
     }
   } catch (e) {}
 
-  // ============================
-  // Lead Event (Option B)
-  // ============================
   const leadPayload = {
     event_type: "lead_capture",
     lead_source: "novabot_ui",
-
     action: "اشتراك",
     card_id: "subscribe",
-
     contact: {
       email: val
     },
-
     user_context: {
       language: lang,
       device: isMobileViewport() ? "mobile" : "desktop",
       page_url: window.location.href
     },
-
-conversation_context: {
-  session_id: sessionToken || null
-},
-
-
+    conversation_context: {
+      session_id: sessionToken || null
+    },
     meta: {
       timestamp: Date.now(),
       version: "lead_v1"
     }
   };
 
-  dispatchNovaLeadEvent(leadPayload);
+  // ✅ انتظر الإرسال
+  await dispatchNovaLeadEvent(leadPayload);
 
   const successMsg =
     lang === "en"
@@ -1148,6 +1139,8 @@ conversation_context: {
       : "تم الاشتراك بنجاح ✓";
   showActionToast(successMsg);
 });
+
+
         }
 
         if (secondaryBtn) {
