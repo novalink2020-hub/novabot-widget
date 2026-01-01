@@ -1131,7 +1131,7 @@ NovaUIState.isTyping = true;
   };
 
   // ✅ انتظر الإرسال
-  await dispatchNovaLeadEvent(leadPayload);
+  dispatchNovaLeadEvent(leadPayload);
 
   const successMsg =
     lang === "en"
