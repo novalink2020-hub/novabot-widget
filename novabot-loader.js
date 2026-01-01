@@ -492,26 +492,29 @@ btn.addEventListener("click", async () => {
   });
 
   const subject = encodeURIComponent("مقترح تعاون مع نوفا لينك");
-  const body = encodeURIComponent(
-    `مرحبًا فريق نوفا لينك،
+const body = encodeURIComponent(
+  `مرحبًا فريق نوفا لينك،
 
 أود مناقشة فكرة تعاون معكم.
-
-وسيلة التواصل:
-${contact || "لم يتم إدخال وسيلة تواصل"}
 
 نوع التعاون:
 الجمهور المستهدف:
 القيمة المتوقعة للطرفين:
 
-تم إرسال هذه الرسالة عبر نوفا بوت.`
-  );
+وسيلة التواصل:
+${contact || "لم يتم إدخال وسيلة تواصل"}
 
+تم إرسال هذه الرسالة عبر نوفا بوت.`
+);
+
+
+setTimeout(() => {
   window.location.href =
     "mailto:contact@novalink-ai.com?subject=" +
     subject +
     "&body=" +
     body;
+}, 350);
 });
 
 
