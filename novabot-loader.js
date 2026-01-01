@@ -373,19 +373,43 @@ Promise.all([
 
     attachAutofill(input);
 
-    btn.addEventListener("click", () => {
-      const contact = (input.value || "").trim();
-      if (!contact) {
-        alert("يرجى إدخال وسيلة تواصل.");
-        input.focus();
-        return;
-      }
+btn.addEventListener("click", async () => {
+  const contact = (input.value || "").trim();
+  if (!contact) {
+    alert("يرجى إدخال وسيلة تواصل.");
+    input.focus();
+    return;
+  }
 
-      saveUserContact(contact);
+  saveUserContact(contact);
 
-      const subject = encodeURIComponent("طلب استشارة – بوت دردشة لعملي");
-      const body = encodeURIComponent(
-        `مرحبًا فريق نوفا لينك،
+  // ✅ Step 5.1.5 — Lead Event: استشارة (يرتبط بالجلسة عبر الهيدر)
+  await dispatchNovaLeadEvent({
+    event_type: "lead_capture",
+    lead_source: "novabot_ui",
+
+    action: "حجز_استشارة",
+    card_id: "bot_lead",
+
+    contact: {
+      email_or_phone: contact
+    },
+
+    user_context: {
+      language: lang,
+      device: isMobileViewport() ? "mobile" : "desktop",
+      page_url: window.location.href
+    },
+
+    meta: {
+      timestamp: Date.now(),
+      version: "lead_v1"
+    }
+  });
+
+  const subject = encodeURIComponent("طلب استشارة – بوت دردشة لعملي");
+  const body = encodeURIComponent(
+    `مرحبًا فريق نوفا لينك،
 
 لدي مشروع وأفكّر في استخدام بوت دردشة لتخفيف ضغط الاستفسارات
 وتحسين تجربة العملاء.
@@ -398,14 +422,15 @@ ${contact}
 أكثر تحدٍ أواجهه حاليًا:
 
 تم إرسال هذه الرسالة عبر نوفا بوت.`
-      );
+  );
 
-      window.location.href =
-        "mailto:contact@novalink-ai.com?subject=" +
-        subject +
-        "&body=" +
-        body;
-    });
+  window.location.href =
+    "mailto:contact@novalink-ai.com?subject=" +
+    subject +
+    "&body=" +
+    body;
+});
+
 
     return card;
   }
@@ -414,42 +439,81 @@ ${contact}
     const card = document.createElement("div");
     card.className = "nova-card";
 
-    card.innerHTML = `
-      <div class="nova-card-header">🤝 تعاون وشراكات</div>
-      <div class="nova-card-text">
-        نرحّب بالتعاونات الجادة المرتبطة بالذكاء الاصطناعي للأعمال:
-        محتوى، شراكات، ورش عمل، أو مشاريع مشتركة ذات قيمة حقيقية.
-      </div>
+card.innerHTML = `
+  <div class="nova-card-header">🤝 تعاون وشراكات</div>
+  <div class="nova-card-text">
+    نرحّب بالتعاونات الجادة المرتبطة بالذكاء الاصطناعي للأعمال:
+    محتوى، شراكات، ورش عمل، أو مشاريع مشتركة ذات قيمة حقيقية.
+  </div>
 
-      <div class="nova-card-actions">
-        <button class="nova-card-btn nova-card-btn-primary">
-          تواصل عبر البريد
-        </button>
-      </div>
-    `;
+  <input
+    type="text"
+    class="nova-card-input"
+    placeholder="بريدك الإلكتروني أو رقم واتساب"
+  />
+
+  <div class="nova-card-actions">
+    <button class="nova-card-btn nova-card-btn-primary">
+      تواصل عبر البريد
+    </button>
+  </div>
+`;
 
     const btn = card.querySelector(".nova-card-btn-primary");
+     const input = card.querySelector(".nova-card-input");
+attachAutofill(input);
 
-    btn.addEventListener("click", () => {
-      const subject = encodeURIComponent("مقترح تعاون مع نوفا لينك");
-      const body = encodeURIComponent(
-        `مرحبًا فريق نوفا لينك،
+btn.addEventListener("click", async () => {
+  const contact = input ? (input.value || "").trim() : "";
+  if (contact) saveUserContact(contact);
+
+  // ✅ Step 5.1.5 — Lead Event: تعاون
+  await dispatchNovaLeadEvent({
+    event_type: "lead_capture",
+    lead_source: "novabot_ui",
+
+    action: "تعاون",
+    card_id: "collaboration",
+
+    contact: {
+      email_or_phone: contact
+    },
+
+    user_context: {
+      language: lang,
+      device: isMobileViewport() ? "mobile" : "desktop",
+      page_url: window.location.href
+    },
+
+    meta: {
+      timestamp: Date.now(),
+      version: "lead_v1"
+    }
+  });
+
+  const subject = encodeURIComponent("مقترح تعاون مع نوفا لينك");
+  const body = encodeURIComponent(
+    `مرحبًا فريق نوفا لينك،
 
 أود مناقشة فكرة تعاون معكم.
+
+وسيلة التواصل:
+${contact || "لم يتم إدخال وسيلة تواصل"}
 
 نوع التعاون:
 الجمهور المستهدف:
 القيمة المتوقعة للطرفين:
 
 تم إرسال هذه الرسالة عبر نوفا بوت.`
-      );
+  );
 
-      window.location.href =
-        "mailto:contact@novalink-ai.com?subject=" +
-        subject +
-        "&body=" +
-        body;
-    });
+  window.location.href =
+    "mailto:contact@novalink-ai.com?subject=" +
+    subject +
+    "&body=" +
+    body;
+});
+
 
     return card;
   }
@@ -506,20 +570,25 @@ const SEND_COOLDOWN_MS = 800; // منع الإرسال المتكرر السري
 // ============================================================
 // Lead Event Dispatcher (Frontend)
 // ============================================================
-function dispatchNovaLeadEvent(payload) {
+async function dispatchNovaLeadEvent(payload) {
   if (!config.API_PRIMARY) return;
 
+  // مهم جدًا: نضمن وجود sessionToken قبل إرسال الليد
+  await ensureSessionToken();
+
   try {
-    fetch(config.API_PRIMARY.replace(/\/+$/, "") + "/lead-event", {
+    const base = config.API_PRIMARY.replace(/\/+$/, "");
+
+    fetch(base + "/lead-event", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        ...(sessionToken ? { "X-NOVABOT-SESSION": sessionToken } : {})
       },
       body: JSON.stringify(payload)
     });
   } catch (e) {}
 }
-
      
     // عناصر الواجهة
     const fabBtn = root.getElementById("novaFabBtn");
