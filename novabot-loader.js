@@ -442,54 +442,71 @@ ${contact}
 تم إرسال هذه الرسالة عبر نوفا بوت.`
   );
 
+ btn.addEventListener("click", async () => {
+  const contact = (input.value || "").trim();
+  if (!contact) {
+    alert("يرجى إدخال وسيلة تواصل.");
+    input.focus();
+    return;
+  }
+
+  saveUserContact(contact);
+
+  // 1️⃣ Lead Event أولًا (مضمون)
+  try {
+    await ensureSessionToken();
+
+    const leadPayload = {
+      event_type: "lead_capture",
+      lead_source: "novabot_ui",
+
+      action: "حجز_استشارة",
+      card_id: "bot_consultation",
+
+      contact: {
+        value: contact,
+        ...(contact.includes("@") ? { email: contact } : {}),
+      },
+
+      user_context: {
+        language: lang,
+        device: isMobileViewport() ? "mobile" : "desktop",
+        page_url: window.location.href,
+      },
+
+      conversation_context: {
+        session_id: sessionToken || "",
+      },
+
+      meta: {
+        timestamp: Date.now(),
+        version: "lead_v1",
+      },
+    };
+
+    dispatchNovaLeadEvent(leadPayload);
+  } catch (e) {
+    console.warn("Lead event failed:", e);
+  }
+
+  // 2️⃣ mailto أخيرًا (UX فقط)
+  const subject = encodeURIComponent("طلب استشارة – بوت دردشة لعملي");
+  const body = encodeURIComponent(
+    `مرحبًا فريق نوفا لينك،
+
+وسيلة التواصل:
+${contact}
+
+تم إرسال هذه الرسالة عبر نوفا بوت.`
+  );
+
   window.location.href =
     "mailto:contact@novalink-ai.com?subject=" +
     subject +
     "&body=" +
     body;
-
-  // ============================
-  // ✅ 2. LEAD EVENT — غير معيق
-  // ============================
-  setTimeout(async () => {
-    try {
-      await ensureSessionToken();
-
-      const leadPayload = {
-        event_type: "lead_capture",
-        lead_source: "novabot_ui",
-
-        action: "حجز_استشارة",
-        card_id: "bot_consultation",
-
-        contact: {
-  value: contact,
-  ...(contact.includes("@") ? { email: contact } : {}),
-},
-
-
-        user_context: {
-          language: lang,
-          device: isMobileViewport() ? "mobile" : "desktop",
-          page_url: window.location.href,
-        },
-
-        conversation_context: {
-          session_id: sessionToken || "",
-        },
-
-        meta: {
-          timestamp: Date.now(),
-          version: "lead_v1",
-        },
-      };
-
-      dispatchNovaLeadEvent(leadPayload);
-    } catch (err) {
-      console.warn("Consultation lead event failed:", err);
-    }
-  }, 0);
 });
+
 
 
 
