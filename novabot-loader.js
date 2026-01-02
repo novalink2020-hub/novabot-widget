@@ -422,40 +422,8 @@ btn.addEventListener("click", () => {
 
   saveUserContact(contact);
 
-  // ============================
-  // ✅ 1. EMAIL — فوري (User Gesture)
-  // ============================
-  const subject = encodeURIComponent("طلب استشارة – بوت دردشة لعملي");
-  const body = encodeURIComponent(
-    `مرحبًا فريق نوفا لينك،
-
-لدي مشروع وأفكّر في استخدام بوت دردشة لتخفيف ضغط الاستفسارات
-وتحسين تجربة العملاء.
-
-وسيلة التواصل:
-${contact}
-
-نوع النشاط:
-الجمهور المستهدف:
-أكثر تحدٍ أواجهه حاليًا:
-
-تم إرسال هذه الرسالة عبر نوفا بوت.`
-  );
-
- btn.addEventListener("click", async () => {
-  const contact = (input.value || "").trim();
-  if (!contact) {
-    alert("يرجى إدخال وسيلة تواصل.");
-    input.focus();
-    return;
-  }
-
-  saveUserContact(contact);
-
-  // 1️⃣ Lead Event أولًا (مضمون)
-  try {
-    await ensureSessionToken();
-
+  // 1️⃣ Lead Event أولًا
+  ensureSessionToken().then(() => {
     const leadPayload = {
       event_type: "lead_capture",
       lead_source: "novabot_ui",
@@ -485,26 +453,33 @@ ${contact}
     };
 
     dispatchNovaLeadEvent(leadPayload);
-  } catch (e) {
-    console.warn("Lead event failed:", e);
-  }
+  });
 
-  // 2️⃣ mailto أخيرًا (UX فقط)
-  const subject = encodeURIComponent("طلب استشارة – بوت دردشة لعملي");
-  const body = encodeURIComponent(
-    `مرحبًا فريق نوفا لينك،
+  // 2️⃣ mailto بعد repaint واحد
+  requestAnimationFrame(() => {
+    const subject = encodeURIComponent("طلب استشارة – بوت دردشة لعملي");
+    const body = encodeURIComponent(
+      `مرحبًا فريق نوفا لينك،
+
+لدي مشروع وأفكّر في استخدام بوت دردشة لتخفيف ضغط الاستفسارات
+وتحسين تجربة العملاء.
 
 وسيلة التواصل:
 ${contact}
 
-تم إرسال هذه الرسالة عبر نوفا بوت.`
-  );
+نوع النشاط:
+الجمهور المستهدف:
+أكثر تحدٍ أواجهه حاليًا:
 
-  window.location.href =
-    "mailto:contact@novalink-ai.com?subject=" +
-    subject +
-    "&body=" +
-    body;
+تم إرسال هذه الرسالة عبر نوفا بوت.`
+    );
+
+    window.location.href =
+      "mailto:contact@novalink-ai.com?subject=" +
+      subject +
+      "&body=" +
+      body;
+  });
 });
 
 
