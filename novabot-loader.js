@@ -325,17 +325,52 @@
 
       attachAutofill(input);
 
-      primaryBtn.addEventListener("click", () => {
-        const val = (input.value || "").trim();
-        if (!val) {
-          alert("يرجى إدخال بريدك الإلكتروني.");
-          input.focus();
-          return;
-        }
-        saveUserContact(val);
-        primaryBtn.textContent = "تم الاشتراك ✓";
-        primaryBtn.disabled = true;
-      });
+primaryBtn.addEventListener("click", async () => {
+  const val = (input.value || "").trim();
+  if (!val) {
+    alert("يرجى إدخال بريدك الإلكتروني.");
+    input.focus();
+    return;
+  }
+
+  saveUserContact(val);
+
+  // تأكد من وجود Session Token
+  await ensureSessionToken();
+
+  const leadPayload = {
+    event_type: "lead_capture",
+    lead_source: "novabot_ui",
+
+    action: "اشتراك_اعمال",
+    card_id: "business_subscribe",
+
+    contact: {
+      email: val,
+    },
+
+    user_context: {
+      language: lang,
+      device: isMobileViewport() ? "mobile" : "desktop",
+      page_url: window.location.href,
+    },
+
+    conversation_context: {
+      session_id: sessionToken || "",
+    },
+
+    meta: {
+      timestamp: Date.now(),
+      version: "lead_v1",
+    },
+  };
+
+  dispatchNovaLeadEvent(leadPayload);
+
+  primaryBtn.textContent = "تم الاشتراك ✓";
+  primaryBtn.disabled = true;
+});
+
 
       secondaryBtn.addEventListener("click", () => {
         window.open(
@@ -377,19 +412,57 @@
 
       attachAutofill(input);
 
-      btn.addEventListener("click", () => {
-        const contact = (input.value || "").trim();
-        if (!contact) {
-          alert("يرجى إدخال وسيلة تواصل.");
-          input.focus();
-          return;
-        }
+btn.addEventListener("click", async () => {
+  const contact = (input.value || "").trim();
+  if (!contact) {
+    alert("يرجى إدخال وسيلة تواصل.");
+    input.focus();
+    return;
+  }
 
-        saveUserContact(contact);
+  saveUserContact(contact);
 
-        const subject = encodeURIComponent("طلب استشارة – بوت دردشة لعملي");
-        const body = encodeURIComponent(
-          `مرحبًا فريق نوفا لينك،
+  // تأكد من وجود Session Token
+  await ensureSessionToken();
+
+  // ============================
+  // Lead Event (Consultation)
+  // ============================
+  const leadPayload = {
+    event_type: "lead_capture",
+    lead_source: "novabot_ui",
+
+    action: "حجز_استشارة",
+    card_id: "bot_consultation",
+
+    contact: {
+      value: contact,
+    },
+
+    user_context: {
+      language: lang,
+      device: isMobileViewport() ? "mobile" : "desktop",
+      page_url: window.location.href,
+    },
+
+    conversation_context: {
+      session_id: sessionToken || "",
+    },
+
+    meta: {
+      timestamp: Date.now(),
+      version: "lead_v1",
+    },
+  };
+
+  dispatchNovaLeadEvent(leadPayload);
+
+  // ============================
+  // Email (النص الأصلي كامل)
+  // ============================
+  const subject = encodeURIComponent("طلب استشارة – بوت دردشة لعملي");
+  const body = encodeURIComponent(
+    `مرحبًا فريق نوفا لينك،
 
 لدي مشروع وأفكّر في استخدام بوت دردشة لتخفيف ضغط الاستفسارات
 وتحسين تجربة العملاء.
@@ -402,14 +475,15 @@ ${contact}
 أكثر تحدٍ أواجهه حاليًا:
 
 تم إرسال هذه الرسالة عبر نوفا بوت.`
-        );
+  );
 
-        window.location.href =
-          "mailto:contact@novalink-ai.com?subject=" +
-          subject +
-          "&body=" +
-          body;
-      });
+  window.location.href =
+    "mailto:contact@novalink-ai.com?subject=" +
+    subject +
+    "&body=" +
+    body;
+});
+
 
       return card;
     }
