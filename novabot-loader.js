@@ -429,32 +429,35 @@ btn.addEventListener("click", async () => {
     await ensureSessionToken();
 
     dispatchNovaLeadEvent({
-      event_type: "lead_capture",
-      lead_source: "novabot_ui",
+  event_type: "lead_capture",
+  lead_source: "novabot_ui",
 
-      action: "حجز_استشارة",
-      card_id: "bot_consultation",
+  action: "حجز_استشارة",
+  card_id: "bot_consultation",
 
-      contact: {
-        value: contact,
-        ...(contact.includes("@") ? { email: contact } : {}),
-      },
+  // ✅ هذا هو السطر الحاسم
+  ...(contact.includes("@") ? { email: contact } : {}),
 
-      user_context: {
-        language: lang,
-        device: isMobileViewport() ? "mobile" : "desktop",
-        page_url: window.location.href,
-      },
+  contact: {
+    value: contact,
+  },
 
-      conversation_context: {
-        session_id: sessionToken || "",
-      },
+  user_context: {
+    language: lang,
+    device: isMobileViewport() ? "mobile" : "desktop",
+    page_url: window.location.href,
+  },
 
-      meta: {
-        timestamp: Date.now(),
-        version: "lead_v1",
-      },
-    });
+  conversation_context: {
+    session_id: sessionToken || "",
+  },
+
+  meta: {
+    timestamp: Date.now(),
+    version: "lead_v1",
+  },
+});
+
   } catch (e) {
     console.warn("Consultation lead failed:", e);
   }
