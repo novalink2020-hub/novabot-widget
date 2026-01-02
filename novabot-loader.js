@@ -587,11 +587,16 @@ ${contact}
     // ============================================================
     // Lead Event Dispatcher (Frontend)
     // ============================================================
-function dispatchNovaLeadEvent(payload) {
-  if (!config.API_PRIMARY) return;
+async function dispatchNovaLeadEvent(payload) {
+  if (!config.API_PRIMARY) {
+    console.warn("NovaBot Lead: API_PRIMARY missing");
+    return;
+  }
+
+  const url = config.API_PRIMARY.replace(/\/+$/, "") + "/lead-event";
 
   try {
-    fetch(config.API_PRIMARY.replace(/\/+$/, "") + "/lead-event", {
+    const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -599,8 +604,27 @@ function dispatchNovaLeadEvent(payload) {
       },
       body: JSON.stringify(payload),
     });
-  } catch (e) {}
+
+    const text = await res.text();
+
+    if (!res.ok) {
+      console.error("NovaBot Lead FAILED", {
+        status: res.status,
+        response: text,
+        payload,
+      });
+    } else {
+      console.log("NovaBot Lead OK", {
+        status: res.status,
+        response: text,
+        payload,
+      });
+    }
+  } catch (err) {
+    console.error("NovaBot Lead ERROR", err);
+  }
 }
+
 
 
     // عناصر الواجهة
