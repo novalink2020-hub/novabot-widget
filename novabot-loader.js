@@ -1091,8 +1091,8 @@ ${contact}
                 page_url: window.location.href,
               },
 
-              conversation_context: {
-                session_id: sessionToken || "",
+conversation_context: {
+  session_id: sessionPublicId || "",
                 ...(currentSessionContext.intent !== undefined
                   ? { intent: currentSessionContext.intent }
                   : {}),
