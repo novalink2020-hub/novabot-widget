@@ -435,11 +435,9 @@ btn.addEventListener("click", async () => {
   action: "حجز_استشارة",
   card_id: "bot_consultation",
 
-  // ✅ هذا هو السطر الحاسم
-  ...(contact.includes("@") ? { email: contact } : {}),
-
   contact: {
     value: contact,
+    ...(contact.includes("@") ? { email: contact } : {}),
   },
 
   user_context: {
@@ -685,425 +683,111 @@ async function dispatchNovaLeadEvent(payload) {
       return;
     }
 
-    /* ============================================================
-       Mobile/Tablet Chat Resize – Full Two-Way Behaviour
-       ============================================================ */
-    (function enableMobileChatResizeFix() {
-      if (!window.visualViewport) return;
-
-      const chatShell = root.querySelector(".nova-chat-shell");
-      if (!chatShell) return;
-
-      // Snapshot للقيم الأصلية — حتى لا يتغيّر شيء عند إغلاق الكيبورد
-      const __kbOriginal = {
-        shellMaxHeight: chatShell.style.maxHeight || "",
-        shellBottom: chatShell.style.bottom || "",
-        bodyMaxHeight: chatBody.style.maxHeight || "",
-        bodyOverflowY: chatBody.style.overflowY || "",
-      };
-
-      let __kbApplied = false;
-
-      let lastHeight = window.visualViewport.height;
-
-      window.visualViewport.addEventListener("resize", () => {
-        const currentHeight = window.visualViewport.height;
-
-        const keyboardOpened = currentHeight < lastHeight - 80;
-        const keyboardClosed = currentHeight > lastHeight + 80;
-
-        /* --------------------------------------------------------
-           عند فتح لوحة المفاتيح (Android / iOS)
-           -------------------------------------------------------- */
-        if (keyboardOpened) {
-          try {
-            const vv = window.visualViewport;
-
-            // مقدار ارتفاع الكيبورد/الجزء المقطوع من أسفل الشاشة
-            const bottomGap = Math.max(
-              0,
-              window.innerHeight - (vv.height + vv.offsetTop)
-            );
-
-            // نرفع الشيل للأعلى بحيث يصير الفوتر ملاصق لسقف الكيبورد
-            chatShell.style.bottom = `${bottomGap}px`;
-
-            // نقيّد فقط maxHeight (بدون لمس height الأساسي)
-            chatShell.style.maxHeight = `${vv.height + vv.offsetTop}px`;
-
-            // الفقاعات: نعطيها سكرول، ونخليها ضمن المساحة المتاحة
-            // (الرقم 64 مجرد هامش أمان بسيط — إذا عندك هيدر/فوتر أكبر نعدّله لاحقًا بدقة)
-            chatBody.style.maxHeight = `${Math.max(120, vv.height - 64)}px`;
-            chatBody.style.overflowY = "auto";
-
-            __kbApplied = true;
-
-            // تثبيت آخر رسالة فوق حقل الكتابة
-            setTimeout(() => {
-              chatBody.scrollTop = chatBody.scrollHeight;
-            }, 0);
-          } catch (e) {
-            console.warn("Keyboard open error:", e);
-          }
-        }
-
-        /* --------------------------------------------------------
-           عند إغلاق لوحة المفاتيح
-           -------------------------------------------------------- */
-        if (keyboardClosed) {
-          try {
-            if (__kbApplied) {
-              chatShell.style.maxHeight = __kbOriginal.shellMaxHeight;
-              chatShell.style.bottom = __kbOriginal.shellBottom;
-              chatBody.style.maxHeight = __kbOriginal.bodyMaxHeight;
-              chatBody.style.overflowY = __kbOriginal.bodyOverflowY;
-              __kbApplied = false;
-            }
-
-            // إعادة النافذة إلى الحجم الكامل
-            chatShell.style.height = `${window.innerHeight}px`;
-            chatShell.style.maxHeight = `${window.innerHeight}px`;
-
-            // إلغاء أي ضغط تم تطبيقه
-            chatBody.style.maxHeight = "";
-
-            // تمرير لأسفل آخر الرسائل
-            setTimeout(() => {
-              chatBody.scrollTop = chatBody.scrollHeight;
-            }, 60);
-          } catch (e) {
-            console.warn("Keyboard close error:", e);
-          }
-        }
-
-        lastHeight = currentHeight;
-      });
-    })();
-
-    // الحالة الداخلية
-    let chatHistory = [];
-    const SOUND_SESSION_KEY = "novabot_sound_count";
-
-    function getSoundCount() {
-      try {
-        return Number(sessionStorage.getItem(SOUND_SESSION_KEY) || 0);
-      } catch {
-        return 0;
-      }
-    }
-
-    function setSoundCount(val) {
-      try {
-        sessionStorage.setItem(SOUND_SESSION_KEY, String(val));
-      } catch {}
-    }
+    /* ==============================
+       Runtime State
+    ============================== */
 
     let novaChatOpen = false;
-
-    // ============================================================
-    // Focus Recovery – UX polish (Mobile & Desktop aware)
-    // ============================================================
-    let wasTypingBeforeBlur = false;
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) {
-        // نسجل فقط — لا نفعل شيء
-        wasTypingBeforeBlur =
-          novaChatOpen && document.activeElement === input;
-        return;
-      }
-
-      // عند العودة
-      if (!novaChatOpen) return;
-
-      // موبايل/تابلت: لا نعيد التركيز تلقائيًا
-      if (isMobileViewport()) {
-        // فقط نضمن أن آخر رسالة مرئية
-        setTimeout(() => {
-          chatBody.scrollTop = chatBody.scrollHeight;
-        }, 60);
-        return;
-      }
-
-      // ديسكتوب: نعيد التركيز فقط إذا كان يكتب سابقًا
-      if (wasTypingBeforeBlur) {
-        setTimeout(() => {
-          input.focus({ preventScroll: true });
-        }, 80);
-      }
-    });
-
-    let currentBotRow = null;
-    let typingIntervalId = null;
-    let isTypingAnimationActive = false;
-
-    const pendingCardCallbacks = [];
-
-    let subscribeCardShown = false;
-    let botCardShown = false;
-    let businessCardShown = false;
-    let collabCardShown = false;
-    let devCardShown = false;
+    let chatHistory = [];
     let leadEventSent = false;
 
-    // ============================================================
-    // Layer 2: Session Token (Short-lived) – client side
-    // ============================================================
-    let sessionToken = "";
-    let sessionExpAt = 0;
+    // cards flags
+    let subscribeCardShown = false;
+    let businessCardShown = false;
+    let botCardShown = false;
+    let collabCardShown = false;
+    let devCardShown = false;
+
+    let typingInterval = null;
+    let isTypingAnimationActive = false;
+    const pendingCardCallbacks = [];
+
+    // session
+    let sessionToken = null;
     let sessionContext = null;
+    let sessionTokenPromise = null;
 
-    function getApiBase(url) {
-      return (url || "").replace(/\/+$/, "");
-    }
-
+    // ============================================================
+    // Session Token – Phase 2 (Resilient)
+    // ============================================================
     async function ensureSessionToken() {
-      if (!config.API_PRIMARY) return;
+      if (sessionToken) return sessionToken;
+      if (!config.API_PRIMARY) return "";
 
-      // صالح؟ لا تعيد الطلب
-      if (sessionToken && Date.now() < sessionExpAt - 10_000) return;
+      if (sessionTokenPromise) return sessionTokenPromise;
 
-      try {
-        const base = getApiBase(config.API_PRIMARY);
-        const res = await fetch(base + "/session", {
-          method: "GET",
-          cache: "no-store",
-        });
+      const url =
+        config.API_PRIMARY.replace(/\/+$/, "") + "/session-token";
 
-        if (!res.ok) {
-          sessionToken = "";
-          sessionExpAt = 0;
-          return;
-        }
+      sessionTokenPromise = (async () => {
+        try {
+          const tsToken = await getTurnstileToken();
 
-        const data = await res.json();
-        if (data && data.ok && data.token) {
-          sessionToken = data.token;
-          sessionExpAt = Date.now() + (data.ttl_ms || 600000);
-        } else {
-          sessionToken = "";
-          sessionExpAt = 0;
-        }
-      } catch {
-        sessionToken = "";
-        sessionExpAt = 0;
-      }
-    }
+          const res = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              channel: config.CHANNEL || "web",
+              device: isMobileViewport() ? "mobile" : "desktop",
+              ...(tsToken ? { turnstile_token: tsToken } : {}),
+            }),
+          });
 
-    // ============================================================
-    //                     Helpers
-    // ============================================================
-    function escapeHtml(str) {
-      return (str || "").replace(/[&<>"]/g, (c) => {
-        return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] || c;
-      });
-    }
-
-    function scrollToBottom() {
-      chatBody.scrollTop = chatBody.scrollHeight;
-    }
-
-    function playNovaSound() {
-      if (!config.SOUND_URL) return;
-
-      let count = getSoundCount();
-      if (count >= 3) return;
-
-      try {
-        const a = new Audio(config.SOUND_URL);
-        a.play().catch(() => {});
-        setSoundCount(count + 1);
-      } catch (e) {}
-    }
-
-    function clearTypingState() {
-      if (typingIntervalId) {
-        clearInterval(typingIntervalId);
-        typingIntervalId = null;
-      }
-      isTypingAnimationActive = false;
-      pendingCardCallbacks.length = 0;
-    }
-
-    // helper بسيط للتمييز بين الموبايل/التابلت والديسكتوب
-    function isMobileViewport() {
-      return window.innerWidth <= 1024;
-    }
-
-    function startThinkingBubble() {
-      if (NovaUIState.isTyping) return;
-      NovaUIState.isTyping = true;
-
-      clearTypingState();
-
-      currentBotRow = document.createElement("div");
-      currentBotRow.className = "nova-msg-row nova-bot";
-
-      currentBotRow.innerHTML = `
-        <div class="nova-bubble nova-bubble-bot">
-          <div class="nova-bot-header">
-            <div class="nova-bot-header-icon">
-              <img src="https://assets.zyrosite.com/YD0w46zZ5ZIrwlP8/novabot-2-f081v1SXHunuZjwP.png" alt="NovaBot" />
-            </div>
-            <div class="nova-bot-name">NOVABOT</div>
-          </div>
-          <div class="nova-bubble-content">
-            <div class="nova-typing">
-              <span>${lang === "en" ? "NovaBot is typing" : "نوفا بوت يكتب الآن"}</span>
-              <span class="nova-typing-dots">
-                <span class="nova-dot-typing"></span>
-                <span class="nova-dot-typing"></span>
-                <span class="nova-dot-typing"></span>
-              </span>
-            </div>
-          </div>
-        </div>
-      `;
-
-      chatBody.appendChild(currentBotRow);
-      scrollToBottom();
-    }
-
-    function computeTypingSpeed(length) {
-      if (length <= 80) return 25;
-      if (length <= 180) return 18;
-      if (length <= 350) return 12;
-      return 9;
-    }
-
-    function typeReplyInCurrentBubble(html) {
-      if (!currentBotRow) startThinkingBubble();
-
-      const contentEl = currentBotRow.querySelector(".nova-bubble-content");
-      if (!contentEl) return;
-
-      clearTypingState();
-
-      const full = html.toString();
-      const length = full.length || 1;
-      const speed = computeTypingSpeed(length);
-
-      let i = 0;
-      isTypingAnimationActive = true;
-
-      typingIntervalId = setInterval(() => {
-        contentEl.innerHTML = full.slice(0, i);
-        i++;
-        scrollToBottom();
-
-        if (i > length) {
-          clearInterval(typingIntervalId);
-          typingIntervalId = null;
-          isTypingAnimationActive = false;
-          NovaUIState.isTyping = false;
-
-          playNovaSound();
-
-          while (pendingCardCallbacks.length > 0) {
-            const cb = pendingCardCallbacks.shift();
-            try {
-              cb();
-            } catch (e) {}
+          const data = await res.json();
+          if (data && data.token) {
+            sessionToken = data.token;
+            sessionContext = data.context || null;
           }
-          NovaUIState.lastInteractionAt = Date.now();
+          return sessionToken || "";
+        } catch (e) {
+          return "";
+        } finally {
+          sessionTokenPromise = null;
         }
-      }, speed);
-    }
+      })();
 
-    function addUserMessage(text) {
-      const row = document.createElement("div");
-      row.className = "nova-msg-row nova-user";
-      row.innerHTML = `
-        <div class="nova-bubble nova-bubble-user">
-          ${escapeHtml(text)}
-        </div>
-      `;
-      chatBody.appendChild(row);
-      scrollToBottom();
-    }
-
-    function addStaticBotMessage(html) {
-      const row = document.createElement("div");
-      row.className = "nova-msg-row nova-bot";
-      row.innerHTML = `
-        <div class="nova-bubble nova-bubble-bot">
-          <div class="nova-bot-header">
-            <div class="nova-bot-header-icon">
-              <img src="https://assets.zyrosite.com/YD0w46zZ5ZIrwlP8/novabot-2-f081v1SXHunuZjwP.png"/>
-            </div>
-            <div class="nova-bot-name">NOVABOT</div>
-          </div>
-          <div class="nova-bubble-content">${html}</div>
-        </div>
-      `;
-      currentBotRow = row;
-      chatBody.appendChild(row);
-      scrollToBottom();
-      playNovaSound();
-    }
-
-    // Toast / إشعار صغير داخل الفقاعة لعمليات البطاقات
-    function showActionToast(message) {
-      const botRows = chatBody.querySelectorAll(".nova-msg-row.nova-bot");
-      const lastBot = botRows[botRows.length - 1];
-      let container = null;
-
-      if (lastBot) {
-        container =
-          lastBot.querySelector(".nova-bubble-content") ||
-          lastBot.querySelector(".nova-bubble") ||
-          lastBot;
-      } else {
-        container = chatBody;
-      }
-
-      const notice = document.createElement("div");
-      notice.className = "nova-system-msg";
-      notice.textContent = message;
-
-      container.appendChild(notice);
-      scrollToBottom();
-
-      setTimeout(() => {
-        if (notice && notice.parentNode) {
-          notice.parentNode.removeChild(notice);
-        }
-      }, 2500);
+      return sessionTokenPromise;
     }
 
     // ============================================================
-    //                     API CALL (Layer 4 Turnstile)
+    // Fetch (Nova API) – Phase 3
     // ============================================================
-    async function callNovaApi(message) {
+    async function callNovaApi(userText) {
       if (!config.API_PRIMARY) return { ok: false, reply: "" };
 
-      // Layer 2: تأكد من وجود Session Token قبل الطلب
-      await ensureSessionToken();
+      const tsToken = await getTurnstileToken();
 
-      // Layer 4: Turnstile token قبل الطلب
-      // (بهدوء: إذا غير متاح أو لم يوجد Site Key سيتم إرسال الطلب بدون التوكن)
-      let tsToken = "";
+      const payload = {
+        message: userText,
+        language: lang,
+        channel: config.CHANNEL || "web",
+        device: isMobileViewport() ? "mobile" : "desktop",
+        business_type: config.BUSINESS_TYPE || "",
+        ...(sessionToken ? { session_token: sessionToken } : {}),
+        ...(tsToken ? { turnstile_token: tsToken } : {}),
+      };
+
       try {
-        tsToken = await getTurnstileToken();
-      } catch {
-        tsToken = "";
-      }
-
-      try {
-        const res = await fetch(config.API_PRIMARY, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(sessionToken ? { "X-NOVABOT-SESSION": sessionToken } : {}),
-            ...(tsToken ? { "X-NOVABOT-TS-TOKEN": tsToken } : {}),
-          },
-          body: JSON.stringify({ message }),
-        });
-
-        if (!res.ok) return { ok: false, reply: "" };
+        const res = await fetch(
+          config.API_PRIMARY.replace(/\/+$/, "") + "/chat",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(sessionToken ? { "X-NOVABOT-SESSION": sessionToken } : {}),
+            },
+            body: JSON.stringify(payload),
+          }
+        );
 
         const data = await res.json();
-        if (data && data.session_context && typeof data.session_context === "object") {
+
+        if (data.session_token && !sessionToken) {
+          sessionToken = data.session_token;
+        }
+        if (data.session_context && typeof data.session_context === "object") {
           sessionContext = data.session_context;
         }
         return {
