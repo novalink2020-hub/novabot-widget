@@ -509,19 +509,21 @@ ${contact}
     // ============================================================
     // Lead Event Dispatcher (Frontend)
     // ============================================================
-    function dispatchNovaLeadEvent(payload) {
-      if (!config.API_PRIMARY) return;
+function dispatchNovaLeadEvent(payload) {
+  if (!config.API_PRIMARY) return;
 
-      try {
-        fetch(config.API_PRIMARY.replace(/\/+$/, "") + "/lead-event", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-      } catch (e) {}
-    }
+  try {
+    fetch(config.API_PRIMARY.replace(/\/+$/, "") + "/lead-event", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(sessionToken ? { "X-NOVABOT-SESSION": sessionToken } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {}
+}
+
 
     // عناصر الواجهة
     const fabBtn = root.getElementById("novaFabBtn");
