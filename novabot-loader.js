@@ -435,8 +435,6 @@ btn.addEventListener("click", async () => {
   action: "حجز_استشارة",
   card_id: "bot_consultation",
 
-  // ✅ هذا هو السطر الحاسم
-  ...(contact.includes("@") ? { email: contact } : {}),
 
   contact: {
     value: contact,
