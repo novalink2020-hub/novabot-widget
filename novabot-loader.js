@@ -851,6 +851,7 @@ async function dispatchNovaLeadEvent(payload) {
     let collabCardShown = false;
     let devCardShown = false;
     let leadEventSent = false;
+     let businessNurtureShown = false;
 
     // ============================================================
     // Layer 2: Session Token (Short-lived) – client side
@@ -1582,6 +1583,21 @@ async function dispatchNovaLeadEvent(payload) {
 
       const replyHtml = replyText.replace(/\n/g, "<br>");
       typeReplyInCurrentBubble(replyHtml);
+       if (
+  !businessNurtureShown &&
+  sessionContext &&
+  (
+    sessionContext.intent === "اهتمام_ذكاء_اصطناعي_للأعمال" ||
+    sessionContext.interest === "business_subscription"
+  ) &&
+  sessionContext.temperature !== "دافئ"
+) {
+  businessNurtureShown = true;
+  setTimeout(() => {
+    addStaticBotMessage("");
+    showCardByType("business_subscribe");
+  }, 3000);
+}
 
       chatHistory.push({ role: "assistant", content: replyText });
       saveConversation();
