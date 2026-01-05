@@ -1596,7 +1596,7 @@ async function dispatchNovaLeadEvent(payload) {
   setTimeout(() => {
     addStaticBotMessage("");
     showCardByType("business_subscribe");
-  }, 5000);
+  }, 10000);
 }
 
       chatHistory.push({ role: "assistant", content: replyText });
