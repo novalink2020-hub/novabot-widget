@@ -430,7 +430,7 @@ console.log("🟡 CONSULT BTN CLICKED", contact);
 try {
   await ensureSessionToken();
 
-  await dispatchNovaLeadEvent({
+  await ensureSessionToken();
     event_type: "lead_capture",
     lead_source: "novabot_ui",
 
@@ -486,11 +486,15 @@ ${contact}
 تم إرسال هذه الرسالة عبر نوفا بوت.`
   );
 
+showActionToast("تم تحضير رسالة حجز الاستشارة");
+setTimeout(() => {
   window.location.href =
     "mailto:contact@novalink-ai.com?subject=" +
     subject +
     "&body=" +
     body;
+}, 1100);
+
 });
 
 
