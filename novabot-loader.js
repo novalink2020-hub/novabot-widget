@@ -1234,8 +1234,9 @@ async function dispatchNovaLeadEvent(payload) {
               },
             };
 
-            dispatchNovaLeadEvent(leadPayload);
-            leadEventSent = true;
+await dispatchNovaLeadEvent(leadPayload);
+leadEventSent = true;
+
 
             const successMsg =
               lang === "en"
